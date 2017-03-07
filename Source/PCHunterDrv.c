@@ -3,6 +3,8 @@
 ****************************************************************************************/
 #include "PCHunterDrv.h"
 
+DYNAMIC_DATA	g_DynamicData = { 0 };
+
 NTSTATUS
 	DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegisterPath)
 {
@@ -31,25 +33,80 @@ NTSTATUS
 		DriverObject->MajorFunction[i] = DefaultPassThrough;
 	}
 
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoControlPassThrough;
+
 	DriverObject->DriverUnload = UnloadDriver;
+	
+	Status = InitDynamicData(&g_DynamicData);			// 初始化信息
 
+	return STATUS_SUCCESS;
+}
 
-#ifdef WIN64
-//	__asm
-//	{
-//		xchg rax,rbx
-//	}
-	DbgPrint("WIN64: PCHunterDrv IS RUNNING!!!");
+/************************************************************************
+*  Name : InitDynamicData
+*  Param: DynamicData			信息
+*  Ret  : NTSTATUS
+*  初始化信息
+************************************************************************/
+NTSTATUS
+InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
+{
+	NTSTATUS				Status = STATUS_SUCCESS;
+	RTL_OSVERSIONINFOEXW	VersionInfo = { 0 };
+	VersionInfo.dwOSVersionInfoSize = sizeof(RTL_OSVERSIONINFOEXW);
+
+	if (DynamicData == NULL)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	RtlZeroMemory(DynamicData, sizeof(DYNAMIC_DATA));
+
+	// 获得计算机版本信息
+	Status = RtlGetVersion(&VersionInfo);
+	if (Status == STATUS_SUCCESS)
+	{
+		UINT32 Version = (VersionInfo.dwMajorVersion << 8) | (VersionInfo.dwMinorVersion << 4) | VersionInfo.wServicePackMajor;
+		DynamicData->WinVersion = (eWinVersion)Version;
+
+		DbgPrint("%x\r\n", DynamicData->WinVersion);
+
+		switch (Version)
+		{
+		case WINVER_7:
+		case WINVER_7_SP1:
+		{
+#ifdef _WIN64
+			DynamicData->ObjectTable = 0x200;
+			DynamicData->SectionObject = 0x268;
+			DynamicData->InheritedFromUniqueProcessId = 0x290;
+			DynamicData->PreviousMode = 0x1f6;
+			DynamicData->MaxUserAddress = 0x7FFFFFFFFFF;
+			DynamicData->NtQueryVirtualMemoryIndex = 0x20;
+			DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
+			DynamicData->NtReadVirtualMemoryIndex = 0x3C;
+			DynamicData->NtWriteVirtualMemoryIndex = 0x37;
+
 #else
-//	__asm
-//	{
-//		xor eax,eax
-//	}
-	DbgPrint("WIN32: PCHunterDrv IS RUNNING!!!");
+			DynamicData->ObjectTable = 0x0f4;
+			DynamicData->SectionObject = 0x128;
+			DynamicData->InheritedFromUniqueProcessId = 0x140;
+			DynamicData->PreviousMode = 0x13a;
+			DynamicData->MaxUserAddress = 0x80000000;
+			DynamicData->NtQueryVirtualMemoryIndex = 0x10B;
+			DynamicData->NtProtectVirtualMemoryIndex = 0x0D7;
+			DynamicData->NtReadVirtualMemoryIndex = 0x115;
+			DynamicData->NtWriteVirtualMemoryIndex = 0x18F;
 
 #endif
-	
-	return STATUS_SUCCESS;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+	return Status;
 }
 
 NTSTATUS
@@ -80,7 +137,5 @@ VOID
 		CurrentDeviceObject = NextDeviceObject;
 	}
 
-
-	
 	DbgPrint("PCHunterDrv IS STOPPED!!!");
 }

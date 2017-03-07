@@ -1,23 +1,50 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
+    <Filter Include="Main">
       <UniqueIdentifier>{ed5475d8-1d48-47af-afda-3f8b4f045bf2}</UniqueIdentifier>
       <Extensions>cpp;c;def</Extensions>
     </Filter>
-    <Filter Include="头文件">
+    <Filter Include="Dispatch">
       <UniqueIdentifier>{2251232a-6017-42b9-b8a6-d2763a26d70f}</UniqueIdentifier>
       <Extensions>hpp;h</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\Source\PCHunterDrv.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    <Filter Include="Assist">
+      <UniqueIdentifier>{306adce6-6d98-4d5c-ba2d-29b0a22469f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\ProcessCore">
+      <UniqueIdentifier>{0d05cf99-41b1-4701-b54e-7cdd21a0c9cb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
-      <Filter>源文件</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\Dispatches.c">
+      <Filter>Dispatch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Private.c">
+      <Filter>Assist</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessCore.c">
+      <Filter>Dispatch\ProcessCore</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\PCHunterDrv.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Dispatches.h">
+      <Filter>Dispatch</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Private.h">
+      <Filter>Assist</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessCore.h">
+      <Filter>Dispatch\ProcessCore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\NtStructs.h">
+      <Filter>Assist</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

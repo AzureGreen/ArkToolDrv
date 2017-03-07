@@ -9,11 +9,18 @@
 #define DEVICE_NAME  L"\\Device\\PCHunterDrvDeviceName"
 #define LINK_NAME    L"\\??\\PCHunterDrvLinkName"
 
+#include "Private.h"
+#include "ProcessCore.h"
+#include "Dispatches.h"
 
-VOID
-	UnloadDriver(PDRIVER_OBJECT DriverObject);
+
+NTSTATUS 
+	InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData);
 
 NTSTATUS
 	DefaultPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
+VOID
+	UnloadDriver(PDRIVER_OBJECT DriverObject);
 
 #endif
