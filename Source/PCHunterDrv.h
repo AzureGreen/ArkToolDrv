@@ -11,6 +11,7 @@
 
 #include "Private.h"
 #include "ProcessCore.h"
+#include "ProcessThread.h"
 #include "Dispatches.h"
 
 

@@ -7,7 +7,7 @@
 
 #define MAX_PROCESS_COUNT  100000
 
-typedef struct _PH_PROCESS_INFORMATION
+typedef struct _PROCESS_INFORMATION
 {
 	WCHAR     wzImageName[100];
 	WCHAR     wzFileFullPath[260];
@@ -17,7 +17,7 @@ typedef struct _PH_PROCESS_INFORMATION
 	UINT32	  ParentProcessId;
 	UINT_PTR  Eprocess;
 	UINT64    CreateTime;
-} PH_PROCESS_INFORMATION, *PPH_PROCESS_INFORMATION;
+} PROCESS_INFORMATION, *PPROCESS_INFORMATION;
 
 BOOLEAN 
 IsValidProcess(IN PEPROCESS EProcess);

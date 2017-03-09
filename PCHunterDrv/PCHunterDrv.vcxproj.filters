@@ -15,6 +15,9 @@
     <Filter Include="Dispatch\ProcessCore">
       <UniqueIdentifier>{0d05cf99-41b1-4701-b54e-7cdd21a0c9cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessThread">
+      <UniqueIdentifier>{467200da-c0ed-443a-b23b-231c4da44659}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -28,6 +31,9 @@
     </ClCompile>
     <ClCompile Include="..\Source\ProcessCore.c">
       <Filter>Dispatch\ProcessCore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessThread.c">
+      <Filter>Dispatch\ProcessCore\ProcessThread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +50,12 @@
       <Filter>Dispatch\ProcessCore</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\NtStructs.h">
+      <Filter>Assist</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessThread.h">
+      <Filter>Dispatch\ProcessCore\ProcessThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Imports.h">
       <Filter>Assist</Filter>
     </ClInclude>
   </ItemGroup>

@@ -380,7 +380,7 @@ EnumSystemProcessList(IN UINT32 BaseProcessId, OUT PVOID OutputBuffer, OUT PUINT
 	CLIENT_ID ClientId = { 0 };
 	PEPROCESS EProcess = NULL;
 
-	PH_PROCESS_INFORMATION ProcessInfo = { 0 };
+	PROCESS_INFORMATION ProcessInfo = { 0 };
 
 	for (ProcessId = BaseProcessId; ProcessId < MAX_PROCESS_COUNT; ProcessId += 4)
 	{

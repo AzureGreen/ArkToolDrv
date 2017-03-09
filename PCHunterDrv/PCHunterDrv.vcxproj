@@ -126,16 +126,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Dispatches.h" />
+    <ClInclude Include="..\Source\Imports.h" />
     <ClInclude Include="..\Source\NtStructs.h" />
     <ClInclude Include="..\Source\PCHunterDrv.h" />
     <ClInclude Include="..\Source\Private.h" />
     <ClInclude Include="..\Source\ProcessCore.h" />
+    <ClInclude Include="..\Source\ProcessThread.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Dispatches.c" />
     <ClCompile Include="..\Source\PCHunterDrv.c" />
     <ClCompile Include="..\Source\Private.c" />
     <ClCompile Include="..\Source\ProcessCore.c" />
+    <ClCompile Include="..\Source\ProcessThread.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
