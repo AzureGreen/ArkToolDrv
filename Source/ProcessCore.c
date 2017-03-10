@@ -8,6 +8,20 @@ typedef
 UINT_PTR
 	(*pfnObGetObjectType)(PVOID Object);
 
+
+UINT8
+ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode)
+{
+	// 保存原先模式
+	UINT8 PreviousMode = *((PUINT8)EThread + g_DynamicData.PreviousMode);
+	// 修改为WantedMode
+	*((PUINT8)EThread + g_DynamicData.PreviousMode) = WantedMode;
+	return PreviousMode;
+}
+
+
+
+
 /************************************************************************
 *  Name : IsValidProcess
 *  Param: EProcess				进程体对象
@@ -266,7 +280,7 @@ GetProcessFullPathByProcessId(IN UINT32 ProcessId, OUT PWCHAR ProcessFullPath, O
 
 						if (FileObject && MmIsAddressValid(FileObject))
 						{
-							POBJECT_NAME_INFORMATION    ObjectNameInformation = NULL;
+							POBJECT_NAME_INFORMATION    oni = NULL;
 							/*
 							3: kd> dt _FILE_OBJECT fffffa80`1ac18d40
 							nt!_FILE_OBJECT
@@ -291,19 +305,19 @@ GetProcessFullPathByProcessId(IN UINT32 ProcessId, OUT PWCHAR ProcessFullPath, O
 							+0x050 Flags            : 0x44042
 							+0x058 FileName         : _UNICODE_STRING "\Windows\explorer.exe"
 							*/
-							Status = IoQueryFileDosDeviceName(FileObject, &ObjectNameInformation);
+							Status = IoQueryFileDosDeviceName(FileObject, &oni);
 							if (NT_SUCCESS(Status))
 							{
-								if (ObjectNameInformation->Name.Length >= MAX_PATH)
+								if (oni->Name.Length >= MAX_PATH)
 								{
 									*ProcessFullPathLength = MAX_PATH - 1;
 								}
 								else
 								{
-									*ProcessFullPathLength = ObjectNameInformation->Name.Length * sizeof(WCHAR);
+									*ProcessFullPathLength = oni->Name.Length * sizeof(WCHAR);
 								}
 
-								RtlCopyMemory(ProcessFullPath, ObjectNameInformation->Name.Buffer, *ProcessFullPathLength);
+								RtlCopyMemory(ProcessFullPath, oni->Name.Buffer, *ProcessFullPathLength);
 
 								Status = STATUS_SUCCESS;
 

@@ -13,7 +13,7 @@ BOOLEAN
 IsThreadInList(IN PETHREAD EThread, IN PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 ThreadCount)
 {
 	BOOLEAN   bOk = FALSE;
-	int i = 0;
+	UINT32 i = 0;
 
 	ThreadCount = ThreadCount > ProcessThreads->ThreadCount ? ProcessThreads->ThreadCount : ThreadCount;
 
@@ -138,7 +138,6 @@ FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_T
 	}
 }
 
-
 NTSTATUS
 EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputBufferLength)
 {
@@ -147,18 +146,12 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 	UINT32    ThreadCount = 0;
 	PEPROCESS EProcess = NULL;
 
-
 	ThreadCount = (OutputBufferLength - sizeof(PROCESS_THREAD_INFORMATION)) / sizeof(PROCESS_THREAD_ENTRY_INFORMATION);
 
 	if (ProcessId == 0)
 	{
-		;
+		return Status;
 	}
-/*	else if (ProcessId == g_SelfProcessId)
-	{
-		EProcess = PsGetCurrentProcess();
-		Status = STATUS_SUCCESS;
-	}*/
 	else
 	{
 		Status = PsLookupProcessByProcessId((HANDLE)ProcessId, &EProcess);
@@ -201,7 +194,7 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 			while (MmIsAddressValid(TravelList) && TravelList != ListEntry && MaxCount--)
 			{
 				PETHREAD EThread = (PETHREAD)((PUINT8)TravelList - g_DynamicData.ThreadListEntry_ETHREAD);
-				FillThreadInfo(EThread, EProcess, OutputBuffer, ThreadCount);
+				FillProcessThreadInfo(EThread, EProcess, OutputBuffer, ThreadCount);
 				TravelList = TravelList->Flink;
 			}
 
@@ -228,160 +221,3 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 }
 
 
-BOOLEAN 
-IsModuleInList(IN UINT_PTR BaseAddress, IN UINT32 ModuleSize, IN PTHREAD_MODULE_INFORMATION ThreadModule, IN UINT_PTR ModuleCount)
-{
-	BOOLEAN bOk = FALSE;
-	UINT32  i = 0;
-	ModuleCount = ThreadModule->ModuleCount > ModuleCount ? ModuleCount : ThreadModule->ModuleCount;
-
-	for (i = 0; i < ModuleCount; i++)
-	{
-		if (BaseAddress == ThreadModule->Modules[i].BaseAddress && 
-			ModuleSize == ThreadModule->Modules[i].Size)
-		{
-			bOk = TRUE;
-			break;
-		}
-	}
-	return bOk;
-}
-
-VOID
-FillThreadModuleInfo()
-{
-
-
-
-	for (PLIST_ENTRY TravelListEntry = (PLIST_ENTRY)((PPEB_LDR_DATA)Peb->Ldr)->InLoadOrderModuleList.Flink;
-		TravelListEntry != &((PPEB_LDR_DATA)Peb->Ldr)->InLoadOrderModuleList;
-		TravelListEntry = (PLIST_ENTRY)TravelListEntry->Flink)
-	{
-		// 其实就是首地址
-		PLDR_DATA_TABLE_ENTRY LdrDataTableEntry = CONTAINING_RECORD(TravelListEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
-		if ((PUINT8)LdrDataTableEntry > 0)
-		{
-			if (!IsModuleInList(LdrDataTableEntry->DllBase, LdrDataTableEntry->SizeOfImage, ThreadModule, ModuleCount))
-			{
-				if (ModuleCount > ThreadModule->ModuleCount)	// Ring3给的大 就继续插
-				{
-					ThreadModule->Modules[ThreadModule->ModuleCount].BaseAddress = (UINT_PTR)LdrDataTableEntry->DllBase;
-					ThreadModule->Modules[ThreadModule->ModuleCount].Size = LdrDataTableEntry->SizeOfImage;
-
-					wcsncpy(ThreadModule->Modules[ThreadModule->ModuleCount].wzFileFullPath, LdrDataTableEntry->FullDllName.Buffer, LdrDataTableEntry->FullDllName.Length);
-				}
-
-				ThreadModule->ModuleCount++;
-			}
-		}
-	}
-
-
-}
-
-NTSTATUS
-EnumDllModuleByPeb(IN PEPROCESS EProcess, OUT PTHREAD_MODULE_INFORMATION ThreadModule, UINT32 ModuleCount)
-{
-	BOOLEAN bAttach = FALSE;
-	KAPC_STATE ApcState;
-	NTSTATUS Status = STATUS_UNSUCCESSFUL;
-
-	KeStackAttachProcess(EProcess, &ApcState);
-	bAttach = TRUE;
-
-	__try
-	{
-		LARGE_INTEGER	Interval = { 0 };
-		Interval.QuadPart = -25011 * 10 * 1000;		// 250 毫秒
-
-		if (TRUE)		// 还要处理 Wow64的问题
-		{
-
-			PPEB Peb = PsGetProcessPeb(EProcess);
-			if (Peb == NULL)
-			{
-				return Status;
-			}
-
-			for (INT i = 0; Peb->Ldr == 0 && i < 10; i++)
-			{
-				// Sleep 等待加载
-				KeDelayExecutionThread(KernelMode, TRUE, &Interval);
-			}
-
-			if (Peb->Ldr == 0)
-			{
-				// 仍然没有加载上
-				return NULL;
-			}
-
-			FillThreadModuleInfo();
-			
-			Status = STATUS_SUCCESS;
-		}
-	}
-	__except (EXCEPTION_EXECUTE_HANDLER)
-	{
-		DbgPrint("EnumDllModuleByPeb Catch __Except\r\n");
-		Status = STATUS_UNSUCCESSFUL;
-	}
-
-	if (bAttach)
-	{
-		KeUnstackDetachProcess(&ApcState);
-		bAttach = FALSE;
-	}
-
-	return Status;
-}
-
-
-
-NTSTATUS
-EnumThreadModule(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputBufferLength)
-{
-	NTSTATUS Status = STATUS_UNSUCCESSFUL;
-	PEPROCESS EProcess = NULL;
-
-	ULONG ModuleCount = (OutputBufferLength - sizeof(THREAD_MODULE_INFORMATION)) / sizeof(THREAD_MODULE_ENTRY_INFORMATION);
-
-	if (ProcessId == 0)
-	{
-		;
-	}
-	else
-	{
-		Status = PsLookupProcessByProcessId((HANDLE)ProcessId, &EProcess);
-	}
-
-	if (NT_SUCCESS(Status) && IsValidProcess(EProcess))
-	{
-		PTHREAD_MODULE_INFORMATION ThreadModule = (PTHREAD_MODULE_INFORMATION)ExAllocatePool(PagedPool, OutputBufferLength);
-		if (ThreadModule)
-		{
-			RtlZeroMemory(ThreadModule, OutputBufferLength);
-
-			Status = EnumDllModuleByPeb(EProcess, ThreadModule, ModuleCount);
-
-			if (ModuleCount >= ThreadModule->ModuleCount)
-			{
-				RtlCopyMemory(OutputBuffer, ThreadModule, OutputBufferLength);
-				Status = STATUS_SUCCESS;
-			}
-			else
-			{
-				Status = STATUS_BUFFER_TOO_SMALL;
-			}
-
-			ExFreePool(ThreadModule, 0);
-			ThreadModule = NULL;
-		}
-	}
-
-	if (EProcess)
-	{
-		ObDereferenceObject(EProcess);
-	}
-
-	return Status;
-}

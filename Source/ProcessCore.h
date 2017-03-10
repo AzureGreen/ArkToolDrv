@@ -19,6 +19,9 @@ typedef struct _PROCESS_INFORMATION
 	UINT64    CreateTime;
 } PROCESS_INFORMATION, *PPROCESS_INFORMATION;
 
+UINT8
+ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode);
+
 BOOLEAN 
 IsValidProcess(IN PEPROCESS EProcess);
 

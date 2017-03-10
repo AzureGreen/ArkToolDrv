@@ -42,7 +42,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = SetSelfProcessId(*(PUINT32)InputBuffer, OutputBuffer, &OutputBufferLength);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Status = Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -68,7 +68,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				Status = GetSystemProcessCount(OutputBuffer, &OutputBufferLength);
 
 				Irp->IoStatus.Information = OutputBufferLength;
-				Status = Irp->IoStatus.Status = STATUS_SUCCESS;
+				Irp->IoStatus.Status = Status;
 			}
 			__except (EXCEPTION_EXECUTE_HANDLER)
 			{
@@ -92,7 +92,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = EnumSystemProcessList(*(PUINT32)InputBuffer, OutputBuffer, &OutputBufferLength);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Status = Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -120,8 +120,8 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 					Status = EnumProcessThread(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
 
-					Irp->IoStatus.Information = OutputBufferLength;
-					Status = Irp->IoStatus.Status = STATUS_SUCCESS;
+					//Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -136,9 +136,9 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
-		case IOCTL_PROC_THREAD_MODULE:
+		case IOCTL_PROC_PROCESS_MODULE:
 		{
-			DbgPrint("Thread Module\r\n");
+			DbgPrint("Process Module\r\n");
 
 			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
 			{
@@ -147,10 +147,10 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
 					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
 
-					Status = EnumThreadModule(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+					Status = EnumProcessModule(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
 
-					Irp->IoStatus.Information = OutputBufferLength;
-					Status = Irp->IoStatus.Status = STATUS_SUCCESS;
+					//Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -165,6 +165,154 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
+
+		case IOCTL_PROC_PROCESS_PRIVILEGE:
+		{
+			DbgPrint("Process Privilege\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					Status = EnumProcessPrivilege(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					//Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_PROC_PRIVILEGE_ADJUST:
+		{
+			DbgPrint("Privilege Adjust\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					Status = AdjustProcessTokenPrivileges((PPRIVILEGE_DATA)InputBuffer, (int*)OutputBuffer);
+
+					//Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_PROC_PROCESS_HANDLE:
+		{
+			DbgPrint("Process Handle\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(PVOID));
+
+					Status = EnumProcessHandle(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_PROC_PROCESS_WINDOW:
+		{
+			DbgPrint("Process Window\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(PVOID));
+
+					Status = EnumProcessWindow(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_PROC_PROCESS_MEMORY:
+		{
+			DbgPrint("Process Memory\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(PVOID));
+
+					Status = EnumProcessMemory(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+
+
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

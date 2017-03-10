@@ -90,31 +90,43 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			DynamicData->Teb = 0x0b8;
 			DynamicData->ContextSwitches = 0x134;
 			DynamicData->State = 0x164;
+			DynamicData->PreviousMode = 0x1f6;
 			DynamicData->Process = 0x210;
 			DynamicData->ThreadListEntry_KTHREAD = 0x2f8;
-			DynamicData->StartAddress = 0x388;    ////
-			DynamicData->Cid = 0x3b0;		////
-			DynamicData->Win32StartAddress = 0x410;    ////
-			DynamicData->ThreadListEntry_ETHREAD = 0x420;   ////
-			DynamicData->SameThreadApcFlags = 0x450;    ////
+			DynamicData->StartAddress = 0x390;    ////
+			DynamicData->Cid = 0x3b8;		////
+			DynamicData->Win32StartAddress = 0x418;    ////
+			DynamicData->ThreadListEntry_ETHREAD = 0x428;   ////
+			DynamicData->SameThreadApcFlags = 0x458;    ////
 			
+			DynamicData->SizeOfObjectHeader = 0x030;
 
-			DynamicData->PreviousMode = 0x1f6;
+			
 			DynamicData->MaxUserAddress = 0x7FFFFFFFFFF;
-			DynamicData->NtQueryVirtualMemoryIndex = 0x20;
+			
+			GetSSDTFunctionIndex("NtQueryVirtualMemory", &(DynamicData->NtQueryVirtualMemoryIndex));
+	//		DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
+	//		DynamicData->NtReadVirtualMemoryIndex = 0x3C;
+	//		DynamicData->NtWriteVirtualMemoryIndex = 0x37;
+
+/*			DynamicData->NtQueryVirtualMemoryIndex = 0x20;
 			DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
 			DynamicData->NtReadVirtualMemoryIndex = 0x3C;
 			DynamicData->NtWriteVirtualMemoryIndex = 0x37;
-
+*/
 #else
 /*			DynamicData->ObjectTable = 0x0f4;
 			DynamicData->SectionObject = 0x128;
 			DynamicData->InheritedFromUniqueProcessId = 0x140;
 			DynamicData->ThreadListHead = 0x02C;
+			DynamicData->PreviousMode = 0x13a;
 			DynamicData->Process = 0x150;
 			DynamicData->ThreadListEntry = 0x1e0;
 			
-			DynamicData->PreviousMode = 0x13a;
+
+			DynamicData->SizeOfObjectHeader = 0x018;  // Y
+
+			
 			DynamicData->MaxUserAddress = 0x80000000;
 			DynamicData->NtQueryVirtualMemoryIndex = 0x10B;
 			DynamicData->NtProtectVirtualMemoryIndex = 0x0D7;

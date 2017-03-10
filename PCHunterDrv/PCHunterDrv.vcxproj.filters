@@ -18,6 +18,21 @@
     <Filter Include="Dispatch\ProcessCore\ProcessThread">
       <UniqueIdentifier>{467200da-c0ed-443a-b23b-231c4da44659}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessPrivilage">
+      <UniqueIdentifier>{b850ae5b-b81c-4614-b101-1b5389bb67f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessHandle">
+      <UniqueIdentifier>{b7b31b8c-c7e9-4823-84ec-354894a67cee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessWindow">
+      <UniqueIdentifier>{7faaac2d-42be-4dec-82c2-d3887784d166}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessModule">
+      <UniqueIdentifier>{6548f827-c1f9-40a1-8dae-7479f648ef4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\ProcessCore\ProcessMemory">
+      <UniqueIdentifier>{ee99f410-7e78-42a3-8fb8-03514e1ccb2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -34,6 +49,21 @@
     </ClCompile>
     <ClCompile Include="..\Source\ProcessThread.c">
       <Filter>Dispatch\ProcessCore\ProcessThread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessPrivilege.c">
+      <Filter>Dispatch\ProcessCore\ProcessPrivilage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessHandle.c">
+      <Filter>Dispatch\ProcessCore\ProcessHandle</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessWindow.c">
+      <Filter>Dispatch\ProcessCore\ProcessWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessModule.c">
+      <Filter>Dispatch\ProcessCore\ProcessModule</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ProcessMemory.c">
+      <Filter>Dispatch\ProcessCore\ProcessMemory</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +87,21 @@
     </ClInclude>
     <ClInclude Include="..\Source\Imports.h">
       <Filter>Assist</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessPrivilege.h">
+      <Filter>Dispatch\ProcessCore\ProcessPrivilage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessHandle.h">
+      <Filter>Dispatch\ProcessCore\ProcessHandle</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessWindow.h">
+      <Filter>Dispatch\ProcessCore\ProcessWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessModule.h">
+      <Filter>Dispatch\ProcessCore\ProcessModule</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ProcessMemory.h">
+      <Filter>Dispatch\ProcessCore\ProcessMemory</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

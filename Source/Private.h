@@ -2,8 +2,13 @@
 #define CXX_Private_H
 
 #include <ntifs.h>
+#include <ntimage.h>
+#include <ntstrsafe.h>
+#include "NtStructs.h"
+#include "Imports.h"
 
 #define MAX_PATH 260
+#define SEC_IMAGE  0x01000000
 
 typedef enum _eWinVersion {
 	WINVER_XP = 0x0510,
@@ -45,6 +50,8 @@ typedef struct _DYNAMIC_DATA
 
 	UINT32      State;                      // KTHREAD::State
 
+	UINT32		PreviousMode;				// KTHREAD::PreviousMode
+
 	UINT32      Process;                    // KTHREAD::Process	
 
 	UINT32      ThreadListEntry_KTHREAD;    // KTHREAD::ThreadListEntry
@@ -59,11 +66,13 @@ typedef struct _DYNAMIC_DATA
 
 	UINT32      SameThreadApcFlags;         // ETHREAD::SameThreadApcFlags
 
+	//////////////////////////////////////////////////////////////////////////
 
+	UINT32		SizeOfObjectHeader;			// Size of ObjectHeader;
 
+	//////////////////////////////////////////////////////////////////////////
 
-
-	UINT32		PreviousMode;				// KTHREAD::PreviousMode
+	
 
 	UINT32		NtQueryVirtualMemoryIndex;	// NtQueryVirtualMemory Index In SSDT
 
@@ -76,5 +85,30 @@ typedef struct _DYNAMIC_DATA
 	UINT_PTR	MaxUserAddress;				// Max Address Of Ring3 Can Visit
 
 } DYNAMIC_DATA, *PDYNAMIC_DATA;
+
+
+
+
+
+NTSTATUS
+ZwQueryVirtualMemory(IN HANDLE ProcessHandle, IN PVOID BaseAddress, IN MEMORY_INFORMATION_CLASS MemoryInformationClass, OUT PVOID MemoryInformation, IN SIZE_T MemoryInformationLength, OUT PSIZE_T ReturnLength);
+
+NTSTATUS
+SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, IN const PVOID BaseAddress, IN UINT_PTR BaseSize, OUT PVOID * FoundAddress);
+
+BOOLEAN
+GetSSDTAddress(OUT PSYSTEM_SERVICE_DESCRIPTOR_TABLE* SSDTAddress);
+
+BOOLEAN
+GetKernelBase(OUT PVOID * KernelBase, OUT PUINT32 KernelSize);
+
+PVOID
+GetSSDTEntry(IN UINT32 FunctionIndex);
+
+BOOLEAN
+MappingPEFileInKernelSpace(IN WCHAR* wzFileFullPath, OUT PVOID* MappingBaseAddress, OUT PSIZE_T MappingViewSize);
+
+BOOLEAN
+GetSSDTFunctionIndex(IN CHAR* szTargetFunctionName, OUT PUINT32 SSDTFunctionIndex);
 
 #endif // !CXX_Private_H
