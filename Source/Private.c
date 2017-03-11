@@ -19,13 +19,6 @@ NTSTATUS
 	__out_opt PSIZE_T ReturnLength);
 
 
-typedef
-NTSTATUS
-(*pfnNtOpenDirectoryObject)(
-	__out PHANDLE DirectoryHandle,
-	__in ACCESS_MASK DesiredAccess,
-	__in POBJECT_ATTRIBUTES ObjectAttributes);
-
 
 /************************************************************************
 *  Name : ZwQueryVirtualMemory
@@ -72,35 +65,6 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 	return Status;
 }
 
-NTSTATUS
-NTAPI
-MyZwOpenDirectoryObject(
-	__out PHANDLE DirectoryHandle,
-	__in ACCESS_MASK DesiredAccess,
-	__in POBJECT_ATTRIBUTES ObjectAttributes)
-{
-	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
-
-	pfnNtOpenDirectoryObject NtOpenDirectoryObject = (pfnNtOpenDirectoryObject)GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
-	if (NtOpenDirectoryObject != NULL)
-	{
-		// 保存之前的模式，转成KernelMode
-		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
-		UINT8		Temp = *PreviousMode;
-
-		*PreviousMode = KernelMode;
-
-		Status = NtOpenDirectoryObject(DirectoryHandle, DesiredAccess, ObjectAttributes);
-
-		*PreviousMode = Temp;
-
-	}
-	else
-	{
-		Status = STATUS_NOT_FOUND;
-	}
-	return Status;
-}
 
 /************************************************************************
 *  Name : SearchPattern

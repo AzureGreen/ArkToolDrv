@@ -24,7 +24,14 @@ typedef struct _KERNEL_MODULE_INFORMATION
 	KERNEL_MODULE_ENTRY_INFORMATION Drivers[1];
 } KERNEL_MODULE_INFORMATION, *PKERNEL_MODULE_INFORMATION;
 
-
+/*
+NTSTATUS
+NTAPI
+MyZwOpenDirectoryObject(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes);
+	*/
 
 PLDR_DATA_TABLE_ENTRY
 GetKernelLdrDataTableEntry(IN PDRIVER_OBJECT DriverObject);

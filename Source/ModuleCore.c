@@ -1,6 +1,13 @@
 #include "ModuleCore.h"
 
 
+typedef
+NTSTATUS
+(*pfnNtOpenDirectoryObject)(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes);
+
 
 extern PDRIVER_OBJECT  g_DriverObject;
 extern DYNAMIC_DATA    g_DynamicData;
@@ -291,7 +298,6 @@ TravelDirectoryObject(IN PVOID DirectoryObject, OUT PKERNEL_MODULE_INFORMATION k
 	}
 }
 
-
 VOID 
 EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 NumberOfDrivers)
 {
@@ -327,7 +333,6 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 }
 
 
-
 NTSTATUS
 EnumSystemModuleList(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 {
@@ -356,3 +361,34 @@ EnumSystemModuleList(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 	return Status;
 }
 
+/*
+NTSTATUS
+NTAPI
+MyZwOpenDirectoryObject(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes)
+{
+	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
+
+	pfnNtOpenDirectoryObject NtOpenDirectoryObject = (pfnNtOpenDirectoryObject)GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
+	if (NtOpenDirectoryObject != NULL)
+	{
+		// 保存之前的模式，转成KernelMode
+		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
+		UINT8		Temp = *PreviousMode;
+
+		*PreviousMode = KernelMode;
+
+		Status = NtOpenDirectoryObject(DirectoryHandle, DesiredAccess, ObjectAttributes);
+
+		*PreviousMode = Temp;
+
+	}
+	else
+	{
+		Status = STATUS_NOT_FOUND;
+	}
+	return Status;
+}
+*/

@@ -103,14 +103,6 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 
 
 NTSTATUS
-NTAPI
-MyZwOpenDirectoryObject(
-	__out PHANDLE DirectoryHandle,
-	__in ACCESS_MASK DesiredAccess,
-	__in POBJECT_ATTRIBUTES ObjectAttributes);
-
-
-NTSTATUS
 SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, IN const PVOID BaseAddress, IN UINT_PTR BaseSize, OUT PVOID * FoundAddress);
 
 BOOLEAN
