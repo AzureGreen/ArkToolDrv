@@ -49,4 +49,7 @@ GetSystemProcessCount(OUT PVOID OutputBuffer, OUT PUINT32 OutputBufferLength);
 NTSTATUS
 EnumSystemProcessList(IN UINT32 BaseProcessId, OUT PVOID OutputBuffer, OUT PUINT32 OutputBufferLength);
 
+NTSTATUS
+KillProcess(IN UINT32 ProcessId, OUT PINT32 OutputBuffer);
+
 #endif // !CXX_ProcessCore_H

@@ -455,3 +455,27 @@ EnumSystemProcessList(IN UINT32 BaseProcessId, OUT PVOID OutputBuffer, OUT PUINT
 
 	return Status;
 }
+
+
+
+NTSTATUS
+KillProcess(IN UINT32 ProcessId, OUT PINT32 OutputBuffer)
+{
+	NTSTATUS          Status = STATUS_UNSUCCESSFUL;
+	OBJECT_ATTRIBUTES oa = { 0 };
+	CLIENT_ID         ClientId = { 0 };
+	HANDLE            ProcessHandle = NULL;
+	
+	ClientId.UniqueProcess = (HANDLE)ProcessId;
+	ClientId.UniqueThread = 0;
+
+	Status = ZwOpenProcess(&ProcessHandle, GENERIC_ALL, &oa, &ClientId);
+	if (NT_SUCCESS(Status))
+	{
+		ZwTerminateProcess(ProcessHandle, 0);
+		ZwClose(ProcessHandle);
+		*OutputBuffer = TRUE;
+	}
+
+	return Status;
+}

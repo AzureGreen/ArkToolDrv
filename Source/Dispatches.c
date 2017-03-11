@@ -311,7 +311,35 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
+		case IOCTL_PROC_PROCESS_KILL:
+		{
+			DbgPrint("Kill Process\r\n");
 
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(INT32));
+
+					Status = KillProcess(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					Irp->IoStatus.Information = OutputBufferLength;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
 
 
 		default:
