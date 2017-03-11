@@ -73,8 +73,15 @@ typedef struct _DYNAMIC_DATA
 	//////////////////////////////////////////////////////////////////////////
 
 	
+	UINT_PTR	UserEndAddress;				// Max Address Of Ring3 Can Visit
 
 	UINT32		NtQueryVirtualMemoryIndex;	// NtQueryVirtualMemory Index In SSDT
+
+	//////////////////////////////////////////////////////////////////////////
+
+	UINT_PTR    KernelStartAddress;			// Start Address Of System
+
+	UINT32      NtOpenDirectoryObjectIndex; // NtOpenDirectoryObject Index In SSDT
 
 	UINT32		NtProtectVirtualMemoryIndex; // NtProtectVirtualMemory Index In SSDT
 
@@ -82,16 +89,26 @@ typedef struct _DYNAMIC_DATA
 
 	UINT32		NtWriteVirtualMemoryIndex;	// NtWriteVirtualMemory Index In SSDT
 
-	UINT_PTR	MaxUserAddress;				// Max Address Of Ring3 Can Visit
+	
 
 } DYNAMIC_DATA, *PDYNAMIC_DATA;
 
-
-
+NTSTATUS
+ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
+	IN PVOID BaseAddress,
+	IN MEMORY_INFORMATION_CLASS MemoryInformationClass,
+	OUT PVOID MemoryInformation, 
+	IN SIZE_T MemoryInformationLength, 
+	OUT PSIZE_T ReturnLength);
 
 
 NTSTATUS
-ZwQueryVirtualMemory(IN HANDLE ProcessHandle, IN PVOID BaseAddress, IN MEMORY_INFORMATION_CLASS MemoryInformationClass, OUT PVOID MemoryInformation, IN SIZE_T MemoryInformationLength, OUT PSIZE_T ReturnLength);
+NTAPI
+MyZwOpenDirectoryObject(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes);
+
 
 NTSTATUS
 SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, IN const PVOID BaseAddress, IN UINT_PTR BaseSize, OUT PVOID * FoundAddress);
@@ -110,5 +127,8 @@ MappingPEFileInKernelSpace(IN WCHAR* wzFileFullPath, OUT PVOID* MappingBaseAddre
 
 BOOLEAN
 GetSSDTFunctionIndex(IN CHAR* szTargetFunctionName, OUT PUINT32 SSDTFunctionIndex);
+
+BOOLEAN
+IsUnicodeStringValid(IN PUNICODE_STRING uniString);
 
 #endif // !CXX_Private_H

@@ -20,159 +20,11 @@ NTSTATUS
 
 
 typedef
-NTSYSCALLAPI
 NTSTATUS
-(NTAPI * pfnNtProtectVirtualMemory)(
-	__in HANDLE ProcessHandle,
-	__inout PVOID *BaseAddress,
-	__inout PSIZE_T RegionSize,
-	__in ULONG NewProtect,
-	__out PULONG OldProtect);
-
-
-typedef
-NTSYSCALLAPI
-NTSTATUS
-(NTAPI * pfnNtReadVirtualMemory)(
-	__in HANDLE ProcessHandle,
-	__in_opt PVOID BaseAddress,
-	__out_bcount(BufferSize) PVOID Buffer,
-	__in SIZE_T BufferSize,
-	__out_opt PSIZE_T NumberOfBytesRead);
-
-
-typedef
-NTSYSCALLAPI
-NTSTATUS
-(NTAPI * pfnNtWriteVirtualMemory)(
-	__in HANDLE ProcessHandle,
-	__in_opt PVOID BaseAddress,
-	__in_bcount(BufferSize) CONST VOID *Buffer,
-	__in SIZE_T BufferSize,
-	__out_opt PSIZE_T NumberOfBytesWritten);
-
-
-NTSTATUS
-NTAPI
-ZwWriteVirtualMemory(
-	IN HANDLE ProcessHandle,
-	IN PVOID BaseAddress,
-	IN CONST VOID *Buffer,
-	IN SIZE_T BufferSize,
-	OUT PSIZE_T NumberOfBytesWritten)
-{
-	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
-
-	pfnNtWriteVirtualMemory NtWriteVirtualMemory = (pfnNtWriteVirtualMemory)GetSSDTEntry(g_DynamicData.NtWriteVirtualMemoryIndex);
-	if (NtWriteVirtualMemory != NULL)
-	{
-		// 保存之前的模式，转成KernelMode
-		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
-		UINT8		Temp = *PreviousMode;
-
-		*PreviousMode = KernelMode;
-
-		Status = NtWriteVirtualMemory(ProcessHandle, BaseAddress, Buffer,
-			BufferSize, NumberOfBytesWritten);
-
-		*PreviousMode = Temp;
-
-	}
-	else
-	{
-		Status = STATUS_NOT_FOUND;
-	}
-	return Status;
-}
-
-/************************************************************************
-*  Name : ZwReadVirtualMemory
-*  Param: ProcessHandle			进程句柄			（IN）
-*  Param: BaseAddress			内存基地址			（IN）
-*  Param: Buffer				缓冲区内存			（OUT）
-*  Param: BufferSize			缓冲区长度			（IN）
-*  Param: NumberOfBytesRead		返回字节数			（OUT）
-*  Ret  : NTSTATUS
-*  通过NtProtectVirtualMemory修改进程内存的保护属性
-************************************************************************/
-
-NTSTATUS
-NTAPI
-ZwReadVirtualMemory(
-	IN HANDLE ProcessHandle,
-	IN PVOID BaseAddress,
-	OUT PVOID Buffer,
-	IN SIZE_T BufferSize,
-	OUT PSIZE_T NumberOfBytesRead)
-{
-	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
-
-	pfnNtReadVirtualMemory NtReadVirtualMemory = (pfnNtReadVirtualMemory)GetSSDTEntry(g_DynamicData.NtReadVirtualMemoryIndex);
-	if (NtReadVirtualMemory != NULL)
-	{
-		// 保存之前的模式，转成KernelMode
-		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
-		UINT8		Temp = *PreviousMode;
-
-		*PreviousMode = KernelMode;
-
-		Status = NtReadVirtualMemory(ProcessHandle, BaseAddress, Buffer,
-			BufferSize, NumberOfBytesRead);
-
-		*PreviousMode = Temp;
-
-	}
-	else
-	{
-		Status = STATUS_NOT_FOUND;
-	}
-	return Status;
-}
-
-
-/************************************************************************
-*  Name : ZwProtectVirtualMemory
-*  Param: ProcessHandle			进程句柄			（IN）
-*  Param: BaseAddress			内存基地址			（IN）
-*  Param: RegionSize			内存区域大小		（IN）
-*  Param: NewProtect			新的保护属性		（IN）
-*  Param: OldProtect			先前的保护属性		（OUT）
-*  Ret  : NTSTATUS
-*  通过NtProtectVirtualMemory修改进程内存的保护属性
-************************************************************************/
-
-NTSTATUS
-NTAPI
-ZwProtectVirtualMemory(
-	IN HANDLE ProcessHandle,
-	IN OUT PVOID *BaseAddress,
-	IN OUT PSIZE_T RegionSize,
-	IN ULONG NewProtect,
-	OUT PULONG OldProtect)
-{
-	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
-
-	pfnNtProtectVirtualMemory NtProtectVirtualMemory = (pfnNtProtectVirtualMemory)GetSSDTEntry(g_DynamicData.NtProtectVirtualMemoryIndex);
-	if (NtProtectVirtualMemory != NULL)
-	{
-		// 保存之前的模式，转成KernelMode
-		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
-		UINT8		Temp = *PreviousMode;
-
-		*PreviousMode = KernelMode;
-
-		Status = NtProtectVirtualMemory(ProcessHandle, BaseAddress, RegionSize,
-			NewProtect, OldProtect);
-
-		*PreviousMode = Temp;
-
-	}
-	else
-	{
-		Status = STATUS_NOT_FOUND;
-	}
-	return Status;
-}
+(*pfnNtOpenDirectoryObject)(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes);
 
 
 /************************************************************************
@@ -220,6 +72,35 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 	return Status;
 }
 
+NTSTATUS
+NTAPI
+MyZwOpenDirectoryObject(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes)
+{
+	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
+
+	pfnNtOpenDirectoryObject NtOpenDirectoryObject = (pfnNtOpenDirectoryObject)GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
+	if (NtOpenDirectoryObject != NULL)
+	{
+		// 保存之前的模式，转成KernelMode
+		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
+		UINT8		Temp = *PreviousMode;
+
+		*PreviousMode = KernelMode;
+
+		Status = NtOpenDirectoryObject(DirectoryHandle, DesiredAccess, ObjectAttributes);
+
+		*PreviousMode = Temp;
+
+	}
+	else
+	{
+		Status = STATUS_NOT_FOUND;
+	}
+	return Status;
+}
 
 /************************************************************************
 *  Name : SearchPattern
@@ -697,4 +578,29 @@ PVOID
 GetSSSDTEntry()
 {
 
+}
+
+
+BOOLEAN 
+IsUnicodeStringValid(IN PUNICODE_STRING uniString)
+{
+	BOOLEAN bOk = FALSE;
+
+	__try
+	{
+		if (uniString->Length > 0 &&
+			uniString->Buffer		&&
+			MmIsAddressValid(uniString->Buffer) &&
+			MmIsAddressValid(&uniString->Buffer[uniString->Length / sizeof(WCHAR) - 1]))
+		{
+			bOk = TRUE;
+		}
+
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		bOk = FALSE;
+	}
+
+	return bOk;
 }

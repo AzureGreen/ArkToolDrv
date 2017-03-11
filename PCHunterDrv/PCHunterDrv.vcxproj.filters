@@ -33,6 +33,9 @@
     <Filter Include="Dispatch\ProcessCore\ProcessMemory">
       <UniqueIdentifier>{ee99f410-7e78-42a3-8fb8-03514e1ccb2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\ModuleCore">
+      <UniqueIdentifier>{867762f3-885f-43db-9be4-c8ce8367f1fb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -64,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="..\Source\ProcessMemory.c">
       <Filter>Dispatch\ProcessCore\ProcessMemory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\ModuleCore.c">
+      <Filter>Dispatch\ModuleCore</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +108,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\ProcessMemory.h">
       <Filter>Dispatch\ProcessCore\ProcessMemory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\ModuleCore.h">
+      <Filter>Dispatch\ModuleCore</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

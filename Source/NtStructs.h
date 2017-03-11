@@ -60,6 +60,7 @@ typedef struct _SECTION_OBJECT
 	PSEGMENT Segment;
 } SECTION_OBJECT, *PSECTION_OBJECT;
 
+//////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 // Peb相关
@@ -160,6 +161,8 @@ typedef struct _PEB
 	UINT32 AtlThunkSListPtr32;
 	PVOID ApiSetMap;
 } PEB, *PPEB;
+
+//////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
 // SystemInformationClass
@@ -372,6 +375,8 @@ typedef struct _MEMORY_BASIC_INFORMATION
 } MEMORY_BASIC_INFORMATION, *PMEMORY_BASIC_INFORMATION;
 
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
 // SSDT 表
 typedef struct _SYSTEM_SERVICE_DESCRIPTOR_TABLE
 {
@@ -382,7 +387,9 @@ typedef struct _SYSTEM_SERVICE_DESCRIPTOR_TABLE
 } SYSTEM_SERVICE_DESCRIPTOR_TABLE, *PSYSTEM_SERVICE_DESCRIPTOR_TABLE;
 
 //////////////////////////////////////////////////////////////////////////
-// 模块信息
+
+//////////////////////////////////////////////////////////////////////////
+// 进程模块信息
 typedef struct _RTL_PROCESS_MODULE_INFORMATION
 {
 	HANDLE	Section;
@@ -403,5 +410,28 @@ typedef struct _RTL_PROCESS_MODULES
 	UINT32 NumberOfModules;
 	RTL_PROCESS_MODULE_INFORMATION Modules[1];
 } RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;
+
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// 对象目录
+
+#define NUMBER_HASH_BUCKETS 37
+typedef struct _OBJECT_DIRECTORY_ENTRY
+{
+	struct _OBJECT_DIRECTORY_ENTRY *ChainLink;
+	PVOID Object;
+	ULONG HashValue;
+} OBJECT_DIRECTORY_ENTRY, *POBJECT_DIRECTORY_ENTRY;
+
+typedef struct _OBJECT_DIRECTORY {
+	struct _OBJECT_DIRECTORY_ENTRY *HashBuckets[NUMBER_HASH_BUCKETS];
+	EX_PUSH_LOCK Lock;
+	struct _DEVICE_MAP *DeviceMap;
+	ULONG SessionId;
+} OBJECT_DIRECTORY, *POBJECT_DIRECTORY;
+
+
 
 #endif // !CXX_NtStructs_H

@@ -47,7 +47,7 @@ EnumProcessMemory(IN UINT32 ProcessId, OUT PPROCESS_MEMORY_INFORMATION pmi, OUT 
 					UINT_PTR BaseAddress = 0;
 
 					// 遍历整个用户层内存空间
-					while (BaseAddress < g_DynamicData.MaxUserAddress)
+					while (BaseAddress < g_DynamicData.UserEndAddress)
 					{
 						MEMORY_BASIC_INFORMATION  mbi = { 0 };
 						SIZE_T					  ReturnLength = 0;

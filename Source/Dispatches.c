@@ -322,7 +322,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
 					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(INT32));
 
-					Status = KillProcess(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
+					Status = KillProcess(*(PUINT32)InputBuffer, OutputBuffer);
 
 					Irp->IoStatus.Information = OutputBufferLength;
 					Irp->IoStatus.Status = STATUS_SUCCESS;
@@ -340,7 +340,29 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
+		//////////////////////////////////////////////////////////////////////////
 
+		case IOCTL_MODU_ENUM_MODULE_LIST:
+		{
+			DbgPrint("Enum Module\r\n");
+
+			__try
+			{
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(PVOID));
+
+				Status = EnumSystemModuleList(OutputBuffer, OutputBufferLength);
+
+				Irp->IoStatus.Information = OutputBufferLength;
+				Irp->IoStatus.Status = STATUS_SUCCESS;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+
+			break;
+		}
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

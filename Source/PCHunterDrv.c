@@ -5,6 +5,8 @@
 
 DYNAMIC_DATA	g_DynamicData = { 0 };
 
+PDRIVER_OBJECT  g_DriverObject = NULL;
+
 NTSTATUS
 	DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegisterPath)
 {
@@ -38,6 +40,8 @@ NTSTATUS
 	DriverObject->DriverUnload = UnloadDriver;
 	
 	Status = InitDynamicData(&g_DynamicData);			// 初始化信息
+
+	g_DriverObject = DriverObject;
 
 	return STATUS_SUCCESS;
 }
@@ -101,10 +105,11 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			
 			DynamicData->SizeOfObjectHeader = 0x030;
 
+			DynamicData->KernelStartAddress = 0xFFFF800000000000;
 			
-			DynamicData->MaxUserAddress = 0x7FFFFFFFFFF;
+			DynamicData->UserEndAddress = 0x00007FFFFFFFFFFF;
 			
-			GetSSDTFunctionIndex("NtQueryVirtualMemory", &(DynamicData->NtQueryVirtualMemoryIndex));
+	
 	//		DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
 	//		DynamicData->NtReadVirtualMemoryIndex = 0x3C;
 	//		DynamicData->NtWriteVirtualMemoryIndex = 0x37;
@@ -127,7 +132,7 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			DynamicData->SizeOfObjectHeader = 0x018;  // Y
 
 			
-			DynamicData->MaxUserAddress = 0x80000000;
+			DynamicData->UserEndAddress = 0x80000000;
 			DynamicData->NtQueryVirtualMemoryIndex = 0x10B;
 			DynamicData->NtProtectVirtualMemoryIndex = 0x0D7;
 			DynamicData->NtReadVirtualMemoryIndex = 0x115;
@@ -139,6 +144,12 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 		default:
 			break;
 		}
+
+		GetSSDTFunctionIndex("NtQueryVirtualMemory", &(DynamicData->NtQueryVirtualMemoryIndex));
+
+		GetSSDTFunctionIndex("NtOpenDirectoryObject", &(DynamicData->NtOpenDirectoryObjectIndex));
+
+
 	}
 
 	return Status;

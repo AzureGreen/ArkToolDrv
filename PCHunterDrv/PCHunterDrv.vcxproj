@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClInclude Include="..\Source\Dispatches.h" />
     <ClInclude Include="..\Source\Imports.h" />
+    <ClInclude Include="..\Source\ModuleCore.h" />
     <ClInclude Include="..\Source\NtStructs.h" />
     <ClInclude Include="..\Source\PCHunterDrv.h" />
     <ClInclude Include="..\Source\Private.h" />
@@ -140,6 +141,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Dispatches.c" />
+    <ClCompile Include="..\Source\ModuleCore.c" />
     <ClCompile Include="..\Source\PCHunterDrv.c" />
     <ClCompile Include="..\Source\Private.c" />
     <ClCompile Include="..\Source\ProcessCore.c" />
