@@ -8,6 +8,13 @@ UINT32								g_KernelSize = 0;
 PSYSTEM_SERVICE_DESCRIPTOR_TABLE	g_SSDTAddress = NULL;
 
 typedef
+NTSTATUS
+(*pfnNtOpenDirectoryObject)(
+	__out PHANDLE DirectoryHandle,
+	__in ACCESS_MASK DesiredAccess,
+	__in POBJECT_ATTRIBUTES ObjectAttributes);
+
+typedef
 NTSYSCALLAPI
 NTSTATUS
 (NTAPI * pfnNtQueryVirtualMemory)(
@@ -18,6 +25,38 @@ NTSTATUS
 	__in SIZE_T MemoryInformationLength,
 	__out_opt PSIZE_T ReturnLength);
 
+
+/*
+NTSTATUS
+NTAPI
+MyZwOpenDirectoryObject(
+__out PHANDLE DirectoryHandle,
+__in ACCESS_MASK DesiredAccess,
+__in POBJECT_ATTRIBUTES ObjectAttributes)
+{
+NTSTATUS	Status = STATUS_UNSUCCESSFUL;
+
+pfnNtOpenDirectoryObject NtOpenDirectoryObject = (pfnNtOpenDirectoryObject)GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
+if (NtOpenDirectoryObject != NULL)
+{
+// 保存之前的模式，转成KernelMode
+PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
+UINT8		Temp = *PreviousMode;
+
+*PreviousMode = KernelMode;
+
+Status = NtOpenDirectoryObject(DirectoryHandle, DesiredAccess, ObjectAttributes);
+
+*PreviousMode = Temp;
+
+}
+else
+{
+Status = STATUS_NOT_FOUND;
+}
+return Status;
+}
+*/
 
 
 /************************************************************************
@@ -63,6 +102,16 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 		Status = STATUS_NOT_FOUND;
 	}
 	return Status;
+}
+
+UINT8
+ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode)
+{
+	// 保存原先模式
+	UINT8 PreviousMode = *((PUINT8)EThread + g_DynamicData.PreviousMode);
+	// 修改为WantedMode
+	*((PUINT8)EThread + g_DynamicData.PreviousMode) = WantedMode;
+	return PreviousMode;
 }
 
 

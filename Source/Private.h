@@ -93,6 +93,16 @@ typedef struct _DYNAMIC_DATA
 
 } DYNAMIC_DATA, *PDYNAMIC_DATA;
 
+/*
+NTSTATUS
+NTAPI
+MyZwOpenDirectoryObject(
+__out PHANDLE DirectoryHandle,
+__in ACCESS_MASK DesiredAccess,
+__in POBJECT_ATTRIBUTES ObjectAttributes);
+*/
+
+
 NTSTATUS
 ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 	IN PVOID BaseAddress,
@@ -101,6 +111,9 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 	IN SIZE_T MemoryInformationLength, 
 	OUT PSIZE_T ReturnLength);
 
+
+UINT8
+ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode);
 
 NTSTATUS
 SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, IN const PVOID BaseAddress, IN UINT_PTR BaseSize, OUT PVOID * FoundAddress);

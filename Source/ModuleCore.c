@@ -304,6 +304,9 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 	NTSTATUS Status = STATUS_UNSUCCESSFUL;
 	HANDLE   DirectoryHandle = NULL;
 
+	UINT8    PreviousMode = 0;
+	PETHREAD EThread = NULL;
+
 	WCHAR             wzDirectory[] = { L'\\', L'\0' };
 	UNICODE_STRING    uniDirectory = { 0 };
 	OBJECT_ATTRIBUTES oa = { 0 };
@@ -311,7 +314,13 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 	RtlInitUnicodeString(&uniDirectory, wzDirectory);
 	InitializeObjectAttributes(&oa, &uniDirectory, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
 
-	Status = MyZwOpenDirectoryObject(DirectoryHandle, 0, &oa);
+	PreviousMode = ChangeThreadMode(EThread, KernelMode);
+
+	pfnNtOpenDirectoryObject NtOpenDirectoryObject = GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
+
+	Status = NtOpenDirectoryObject(&DirectoryHandle, 0, &oa);
+
+	DbgPrint("NtOpenDirectoryObject  %x\r\n", Status);
 
 	if (NT_SUCCESS(Status))
 	{
@@ -330,6 +339,7 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 		Status = NtClose(DirectoryHandle);
 	}
 
+	PreviousMode = ChangeThreadMode(EThread, PreviousMode);
 }
 
 
@@ -361,34 +371,179 @@ EnumSystemModuleList(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 	return Status;
 }
 
-/*
-NTSTATUS
-NTAPI
-MyZwOpenDirectoryObject(
-	__out PHANDLE DirectoryHandle,
-	__in ACCESS_MASK DesiredAccess,
-	__in POBJECT_ATTRIBUTES ObjectAttributes)
+
+//判断一个驱动是否为真的驱动对象
+BOOLEAN 
+IsValidDriverObject(IN PDRIVER_OBJECT DriverObject)
 {
-	NTSTATUS	Status = STATUS_UNSUCCESSFUL;
-
-	pfnNtOpenDirectoryObject NtOpenDirectoryObject = (pfnNtOpenDirectoryObject)GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
-	if (NtOpenDirectoryObject != NULL)
+	BOOLEAN bOk = FALSE;
+	if (!*IoDriverObjectType ||
+		!*IoDeviceObjectType)
 	{
-		// 保存之前的模式，转成KernelMode
-		PUINT8		PreviousMode = (PUINT8)PsGetCurrentThread() + g_DynamicData.PreviousMode;
-		UINT8		Temp = *PreviousMode;
-
-		*PreviousMode = KernelMode;
-
-		Status = NtOpenDirectoryObject(DirectoryHandle, DesiredAccess, ObjectAttributes);
-
-		*PreviousMode = Temp;
-
+		return bOk;
 	}
-	else
+
+	__try
 	{
-		Status = STATUS_NOT_FOUND;
+		if (DriverObject->Type == 4 &&
+			DriverObject->Size == sizeof(DRIVER_OBJECT) &&
+			KeGetObjectType(DriverObject) == *IoDriverObjectType &&
+			MmIsAddressValid(DriverObject->DriverSection) &&
+			(UINT_PTR)DriverObject->DriverSection > g_DynamicData.KernelStartAddress &&
+			!(DriverObject->DriverSize & 0x1F) &&
+			DriverObject->DriverSize < g_DynamicData.KernelStartAddress &&
+			!((UINT_PTR)(DriverObject->DriverStart) & 0xFFF) &&		// 起始地址都是页对齐
+			(UINT_PTR)DriverObject->DriverStart > g_DynamicData.KernelStartAddress)
+		{
+			PDEVICE_OBJECT DeviceObject = DriverObject->DeviceObject;
+			if (DeviceObject)
+			{
+				if (MmIsAddressValid(DeviceObject) &&
+					KeGetObjectType(DeviceObject) == *IoDeviceObjectType &&
+					DeviceObject->Type == 3 &&
+					DeviceObject->Size >= sizeof(DEVICE_OBJECT))
+				{
+					bOk = TRUE;
+				}
+			}
+			else
+			{
+				bOk = TRUE;
+			}
+		}
 	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		bOk = FALSE;
+	}
+
+	return bOk;
+}
+
+
+// 调用对象的卸载函数 清理所有派遣例程
+VOID 
+HaveDriverUnloadThreadCallback(IN PVOID lParam)
+{
+	PDRIVER_OBJECT DriverObject = (PDRIVER_OBJECT)lParam;
+
+	if (DriverObject)
+	{
+		PDRIVER_UNLOAD DriverUnloadAddress = DriverObject->DriverUnload;
+
+		if (DriverUnloadAddress)
+		{
+			DriverUnloadAddress(DriverObject);
+
+			DriverObject->FastIoDispatch = NULL;		// FastIO
+			RtlZeroMemory(DriverObject->MajorFunction, sizeof(DriverObject->MajorFunction));
+			DriverObject->DriverUnload = NULL;
+
+			ObMakeTemporaryObject(DriverObject);	// removes the name of the object from its parent directory
+			ObfDereferenceObject(DriverObject);
+		}
+	}
+
+	PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+VOID 
+HaveNoDriverUnloadThreadCallback(IN PVOID lParam)
+{
+
+	PDRIVER_OBJECT DriverObject = (PDRIVER_OBJECT)lParam;
+	
+	if (DriverObject)
+	{
+		PDEVICE_OBJECT	NextDeviceObject = NULL;
+		PDEVICE_OBJECT  CurrentDeviceObject = NULL;
+
+		DriverObject->FastIoDispatch = NULL;
+		RtlZeroMemory(DriverObject->MajorFunction, sizeof(DriverObject->MajorFunction));
+		DriverObject->DriverUnload = NULL;
+
+		CurrentDeviceObject = DriverObject->DeviceObject;
+
+		while (CurrentDeviceObject && MmIsAddressValid(CurrentDeviceObject))	// 自己实现Unload 也就是清除设备链
+		{
+			NextDeviceObject = CurrentDeviceObject->NextDevice;
+			IoDeleteDevice(CurrentDeviceObject);
+			CurrentDeviceObject = NextDeviceObject;
+		}
+
+		ObMakeTemporaryObject(DriverObject);
+		ObfDereferenceObject(DriverObject);
+	}
+
+	PsTerminateSystemThread(STATUS_SUCCESS);
+}
+
+// 创建系统线程 完成卸载函数
+NTSTATUS 
+PspUnloadDriver(IN PDRIVER_OBJECT DriverObject)
+{
+	NTSTATUS Status = STATUS_UNSUCCESSFUL;
+
+	if (MmIsAddressValid(DriverObject))
+	{
+		BOOLEAN bDriverUnload = FALSE;
+		HANDLE  SystemThreadHandle = NULL;
+
+		if (DriverObject->DriverUnload &&
+			(UINT_PTR)DriverObject->DriverUnload > g_DynamicData.KernelStartAddress &&
+			MmIsAddressValid(DriverObject->DriverUnload))
+		{
+			bDriverUnload = TRUE;
+		}
+
+		if (bDriverUnload)	 // 如果存在卸载函数
+		{
+			Status = PsCreateSystemThread(&SystemThreadHandle, 0, NULL, NULL, NULL, HaveDriverUnloadThreadCallback, DriverObject);
+		}
+		else
+		{
+			Status = PsCreateSystemThread(&SystemThreadHandle, 0, NULL, NULL, NULL, HaveNoDriverUnloadThreadCallback, DriverObject);
+		}
+
+		// 等待线程 关闭句柄
+
+		if (NT_SUCCESS(Status))
+		{
+			PETHREAD EThread = NULL, CurrentEThread = NULL;
+			UINT8 PreviousMode = 0;
+
+			Status = ObReferenceObjectByHandle(SystemThreadHandle, 0, NULL, KernelMode, &EThread, NULL);
+			if (NT_SUCCESS(Status))
+			{
+				LARGE_INTEGER TimeOut;
+				TimeOut.QuadPart = -10 * 1000 * 1000 * 3;
+				Status = KeWaitForSingleObject(EThread, Executive, KernelMode, TRUE, &TimeOut); // 等待3秒
+				ObfDereferenceObject(EThread);
+			}
+
+			CurrentEThread = PsGetCurrentThread();
+			PreviousMode = ChangeThreadMode(CurrentEThread, KernelMode);
+			NtClose(SystemThreadHandle);
+			ChangeThreadMode(CurrentEThread, PreviousMode);
+		}
+	}
+
 	return Status;
 }
-*/
+
+NTSTATUS
+UnloadDriverObject(IN PVOID InputBuffer, IN UINT32 InputLength)
+{
+	PDRIVER_OBJECT DriverObject = (PDRIVER_OBJECT)InputBuffer;
+	NTSTATUS       Status = STATUS_UNSUCCESSFUL;
+
+	if ((UINT_PTR)DriverObject > g_DynamicData.KernelStartAddress &&
+		MmIsAddressValid(DriverObject) &&
+		g_DriverObject != DriverObject &&
+		IsValidDriverObject(DriverObject))
+	{
+		Status = PspUnloadDriver(DriverObject);
+	}
+
+	return Status;
+}

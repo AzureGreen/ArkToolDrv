@@ -54,4 +54,19 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 NTSTATUS
 EnumSystemModuleList(OUT PVOID OutputBuffer, IN UINT32 OutputLength);
 
+BOOLEAN
+IsValidDriverObject(IN PDRIVER_OBJECT DriverObject);
+
+VOID
+HaveDriverUnloadThreadCallback(IN PVOID lParam);
+
+VOID
+HaveNoDriverUnloadThreadCallback(IN PVOID lParam);
+
+NTSTATUS
+PspUnloadDriver(IN PDRIVER_OBJECT DriverObject);
+
+NTSTATUS
+UnloadDriverObject(IN PVOID InputBuffer, IN UINT32 InputLength);
+
 #endif // !CXX_ModuleCore_H

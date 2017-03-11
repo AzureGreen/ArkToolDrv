@@ -238,7 +238,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = EnumProcessHandle(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -267,7 +267,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = EnumProcessWindow(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -296,7 +296,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = EnumProcessMemory(*(PUINT32)InputBuffer, OutputBuffer, OutputBufferLength);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -325,7 +325,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					Status = KillProcess(*(PUINT32)InputBuffer, OutputBuffer);
 
 					Irp->IoStatus.Information = OutputBufferLength;
-					Irp->IoStatus.Status = STATUS_SUCCESS;
+					Irp->IoStatus.Status = Status;
 				}
 				__except (EXCEPTION_EXECUTE_HANDLER)
 				{
@@ -348,12 +348,12 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			__try
 			{
-				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(PVOID));
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
 
 				Status = EnumSystemModuleList(OutputBuffer, OutputBufferLength);
 
 				Irp->IoStatus.Information = OutputBufferLength;
-				Irp->IoStatus.Status = STATUS_SUCCESS;
+				Irp->IoStatus.Status = Status;
 			}
 			__except (EXCEPTION_EXECUTE_HANDLER)
 			{
@@ -363,6 +363,28 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
+		case IOCTL_MODU_UNLOAD_MODULE:
+		{
+			DbgPrint("Unload Module\r\n");
+
+			__try
+			{
+				ProbeForRead(InputBuffer, InputBufferLength, sizeof(PVOID));
+
+				Status = UnloadDriverObject(*(PUINT_PTR)InputBuffer, InputBufferLength);
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+
+			break;
+		}
+
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

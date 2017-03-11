@@ -9,15 +9,15 @@ UINT_PTR
 	(*pfnObGetObjectType)(PVOID Object);
 
 
-UINT8
-ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode)
-{
-	// 保存原先模式
-	UINT8 PreviousMode = *((PUINT8)EThread + g_DynamicData.PreviousMode);
-	// 修改为WantedMode
-	*((PUINT8)EThread + g_DynamicData.PreviousMode) = WantedMode;
-	return PreviousMode;
-}
+//UINT8
+//ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode)
+//{
+//	// 保存原先模式
+//	UINT8 PreviousMode = *((PUINT8)EThread + g_DynamicData.PreviousMode);
+//	// 修改为WantedMode
+//	*((PUINT8)EThread + g_DynamicData.PreviousMode) = WantedMode;
+//	return PreviousMode;
+//}
 
 
 
