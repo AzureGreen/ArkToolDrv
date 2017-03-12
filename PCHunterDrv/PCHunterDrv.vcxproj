@@ -138,6 +138,7 @@
     <ClInclude Include="..\Source\ProcessPrivilege.h" />
     <ClInclude Include="..\Source\ProcessThread.h" />
     <ClInclude Include="..\Source\ProcessWindow.h" />
+    <ClInclude Include="..\Source\SysCallback.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Dispatches.c" />
@@ -151,6 +152,7 @@
     <ClCompile Include="..\Source\ProcessPrivilege.c" />
     <ClCompile Include="..\Source\ProcessThread.c" />
     <ClCompile Include="..\Source\ProcessWindow.c" />
+    <ClCompile Include="..\Source\SysCallback.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

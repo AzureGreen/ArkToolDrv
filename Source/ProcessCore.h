@@ -31,9 +31,6 @@ IsActiveProcess(IN PEPROCESS EProcess);
 UINT_PTR 
 KeGetObjectType(IN PVOID Object);
 
-BOOLEAN 
-GetNtosExportVariableAddress(IN WCHAR * wzVariableName, OUT PVOID * VariableAddress);
-
 PEPROCESS
 GetIdleEProcess();
 

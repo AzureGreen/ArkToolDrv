@@ -12,7 +12,7 @@
 #include "ProcessWindow.h"
 #include "ProcessMemory.h"
 #include "ModuleCore.h"
-
+#include "SysCallback.h"
 
 
 //  π”√Method_Buffer
@@ -35,6 +35,8 @@
 //////////////////////////////////////////////////////////////////////////
 #define IOCTL_MODU_ENUM_MODULE_LIST  (UINT32)CTL_CODE(FILE_DEVICE_UNKNOWN, 0x812, METHOD_NEITHER, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 #define IOCTL_MODU_UNLOAD_MODULE  (UINT32)CTL_CODE(FILE_DEVICE_UNKNOWN, 0x813, METHOD_NEITHER, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+//////////////////////////////////////////////////////////////////////////
+#define IOCTL_SYS_ENUM_CALLBACK_LIST  (UINT32)CTL_CODE(FILE_DEVICE_UNKNOWN, 0x814, METHOD_NEITHER, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 
 
 

@@ -115,6 +115,9 @@ ZwQueryVirtualMemory(IN HANDLE ProcessHandle,
 UINT8
 ChangeThreadMode(IN PETHREAD EThread, IN UINT8 WantedMode);
 
+BOOLEAN
+GetNtosExportVariableAddress(IN WCHAR * wzVariableName, OUT PVOID * VariableAddress);
+
 NTSTATUS
 SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, IN const PVOID BaseAddress, IN UINT_PTR BaseSize, OUT PVOID * FoundAddress);
 

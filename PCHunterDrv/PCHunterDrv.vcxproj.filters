@@ -36,6 +36,9 @@
     <Filter Include="Dispatch\ModuleCore">
       <UniqueIdentifier>{867762f3-885f-43db-9be4-c8ce8367f1fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\KernelSys">
+      <UniqueIdentifier>{5e229454-a56c-4dee-b9c8-4bc963ac9647}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="..\Source\ModuleCore.c">
       <Filter>Dispatch\ModuleCore</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SysCallback.c">
+      <Filter>Dispatch\KernelSys</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +117,9 @@
     </ClInclude>
     <ClInclude Include="..\Source\ModuleCore.h">
       <Filter>Dispatch\ModuleCore</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SysCallback.h">
+      <Filter>Dispatch\KernelSys</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

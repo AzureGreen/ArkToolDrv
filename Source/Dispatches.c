@@ -28,6 +28,8 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		IoControlCode = IrpStack->Parameters.DeviceIoControl.IoControlCode;
 		switch (IoControlCode)
 		{
+		//////////////////////////////////////////////////////////////////////////
+		// ProcessCore
 		case IOCTL_PROC_SEND_SELF_PID:
 		{
 			DbgPrint("Send Self Pid\r\n");
@@ -341,7 +343,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			break;
 		}
 		//////////////////////////////////////////////////////////////////////////
-
+		// ModuleCore
 		case IOCTL_MODU_ENUM_MODULE_LIST:
 		{
 			DbgPrint("Enum Module\r\n");
@@ -367,11 +369,39 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		{
 			DbgPrint("Unload Module\r\n");
 
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(PVOID));
+
+					Status = UnloadDriverObject(*(PUINT_PTR)InputBuffer, InputBufferLength);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+		//////////////////////////////////////////////////////////////////////////
+		// KernelSys
+		case IOCTL_SYS_ENUM_CALLBACK_LIST:
+		{
+			DbgPrint("Enum Callbacks\r\n");
 			__try
 			{
-				ProbeForRead(InputBuffer, InputBufferLength, sizeof(PVOID));
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
 
-				Status = UnloadDriverObject(*(PUINT_PTR)InputBuffer, InputBufferLength);
+				Status = EnumSysCallbackNotify(OutputBuffer, OutputBufferLength);
 
 				Irp->IoStatus.Information = 0;
 				Irp->IoStatus.Status = Status;
@@ -381,10 +411,8 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				DbgPrint("Catch Exception\r\n");
 				Status = STATUS_UNSUCCESSFUL;
 			}
-
 			break;
 		}
-
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

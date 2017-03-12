@@ -201,7 +201,7 @@ InsertDriver(OUT PKERNEL_MODULE_INFORMATION kmi, IN PDRIVER_OBJECT DriverObject,
 	}
 }
 
-// 
+// 遍历哈希目录 --> 目录上每个链表 --> 1.目录 递归  2.驱动对象 插入  3.设备对象 遍历设备栈 插入驱动对象
 VOID
 TravelDirectoryObject(IN PVOID DirectoryObject, OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 NumberOfDrivers)
 {
@@ -314,6 +314,7 @@ EnumKernelModuleByDirectoryObject(OUT PKERNEL_MODULE_INFORMATION kmi, IN UINT32 
 	RtlInitUnicodeString(&uniDirectory, wzDirectory);
 	InitializeObjectAttributes(&oa, &uniDirectory, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
 
+	EThread = PsGetCurrentThread();
 	PreviousMode = ChangeThreadMode(EThread, KernelMode);
 
 	pfnNtOpenDirectoryObject NtOpenDirectoryObject = GetSSDTEntry(g_DynamicData.NtOpenDirectoryObjectIndex);
