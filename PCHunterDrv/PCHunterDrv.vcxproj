@@ -139,6 +139,8 @@
     <ClInclude Include="..\Source\ProcessThread.h" />
     <ClInclude Include="..\Source\ProcessWindow.h" />
     <ClInclude Include="..\Source\SysCallback.h" />
+    <ClInclude Include="..\Source\SysDpcTimer.h" />
+    <ClInclude Include="..\Source\SysIoTimer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Dispatches.c" />
@@ -153,6 +155,8 @@
     <ClCompile Include="..\Source\ProcessThread.c" />
     <ClCompile Include="..\Source\ProcessWindow.c" />
     <ClCompile Include="..\Source\SysCallback.c" />
+    <ClCompile Include="..\Source\SysDpcTimer.c" />
+    <ClCompile Include="..\Source\SysIoTimer .c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

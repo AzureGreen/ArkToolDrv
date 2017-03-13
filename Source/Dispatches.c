@@ -375,7 +375,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				{
 					ProbeForRead(InputBuffer, InputBufferLength, sizeof(PVOID));
 
-					Status = UnloadDriverObject(*(PUINT_PTR)InputBuffer, InputBufferLength);
+					Status = UnloadDriverObject((PVOID)*(PUINT_PTR)InputBuffer, InputBufferLength);
 
 					Irp->IoStatus.Information = 0;
 					Irp->IoStatus.Status = Status;
@@ -413,6 +413,153 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			}
 			break;
 		}
+		case IOCTL_SYS_REMOVE_CALLBACK_ITEM:
+		{
+			DbgPrint("Remove Callback\r\n");
+
+			if (InputBufferLength >= sizeof(PSYS_CALLBACK_ENTRY_INFORMATION) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					Status = RemoveCallbackNotify((PSYS_CALLBACK_ENTRY_INFORMATION)InputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+		case IOCTL_SYS_ENUM_IOTIMER_LIST:
+		{
+			DbgPrint("Enum IoTimer\r\n");
+			__try
+			{
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+				Status = EnumIoTimer(OutputBuffer, OutputBufferLength);
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_SYS_REMOVE_IOTIMER_ITEM:
+		{
+			DbgPrint("Remove IoTimer\r\n");
+
+			if (InputBufferLength >= sizeof(UINT_PTR) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					Status = RemoveIoTimer((PLIST_ENTRY)*(PUINT_PTR)InputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+		case IOCTL_SYS_RUNORSTOP_IOTIMER_ITEM:
+		{
+			DbgPrint("Run Or Stop IoTimer\r\n");
+
+			if (InputBufferLength >= sizeof(POPERATION_ON_IO_TIMER_INFORMATION) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					Status = RunOrStopIoTimer((POPERATION_ON_IO_TIMER_INFORMATION)InputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+		case IOCTL_SYS_ENUM_DPCTIMER_LIST:
+		{
+			DbgPrint("Enum DpcTimer\r\n");
+			__try
+			{
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+				Status = EnumDpcTimer(OutputBuffer, OutputBufferLength);
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_SYS_REMOVE_DPCTIMER_ITEM:
+		{
+			DbgPrint("Remove DpcTimer\r\n");
+
+			if (InputBufferLength >= sizeof(UINT_PTR) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					Status = RemoveDpcTimer(*(PUINT_PTR)InputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

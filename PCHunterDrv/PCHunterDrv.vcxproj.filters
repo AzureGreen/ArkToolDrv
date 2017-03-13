@@ -39,6 +39,15 @@
     <Filter Include="Dispatch\KernelSys">
       <UniqueIdentifier>{5e229454-a56c-4dee-b9c8-4bc963ac9647}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\KernelSys\Callback">
+      <UniqueIdentifier>{87c01687-d2ab-465f-b9e1-5fa7adf464a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\KernelSys\IoTimer">
+      <UniqueIdentifier>{661fdec2-f4ad-4f3d-9871-06eed5045f8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\KernelSys\DpcTimer">
+      <UniqueIdentifier>{590f7795-e210-454a-9cac-c636c85ee309}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -75,7 +84,13 @@
       <Filter>Dispatch\ModuleCore</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\SysCallback.c">
-      <Filter>Dispatch\KernelSys</Filter>
+      <Filter>Dispatch\KernelSys\Callback</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SysIoTimer .c">
+      <Filter>Dispatch\KernelSys\IoTimer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SysDpcTimer.c">
+      <Filter>Dispatch\KernelSys\DpcTimer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -119,7 +134,13 @@
       <Filter>Dispatch\ModuleCore</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\SysCallback.h">
-      <Filter>Dispatch\KernelSys</Filter>
+      <Filter>Dispatch\KernelSys\Callback</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SysIoTimer.h">
+      <Filter>Dispatch\KernelSys\IoTimer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SysDpcTimer.h">
+      <Filter>Dispatch\KernelSys\DpcTimer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

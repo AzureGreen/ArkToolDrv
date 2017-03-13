@@ -975,3 +975,76 @@ EnumSysCallbackNotify(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 	}
 	return Status;
 }
+
+
+NTSTATUS
+RemoveCallbackNotify(IN PSYS_CALLBACK_ENTRY_INFORMATION CallbackEntry)
+{
+	NTSTATUS Status = STATUS_UNSUCCESSFUL;
+
+
+	UINT_PTR CallbackAddress = CallbackEntry->CallbackAddress;
+	CALLBACK_TYPE CallbackType = CallbackEntry->Type;
+
+	if (CallbackAddress && MmIsAddressValid((PVOID)CallbackAddress))
+	{
+		switch (CallbackType)
+		{
+		case NotifyLoadImage:
+		{
+			DbgPrint("Remove NotifyLoadImage\r\n");
+			Status = PsRemoveLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)CallbackAddress);
+			break;
+		}
+		case NotifyCreateThread:
+		{
+			DbgPrint("Remove NotifyLoadImage\r\n");
+			Status = PsRemoveCreateThreadNotifyRoutine((PCREATE_THREAD_NOTIFY_ROUTINE)CallbackAddress);
+			break;
+		}
+		case NotifyCmpCallBack:
+		{
+			LARGE_INTEGER Cookie;
+			UINT_PTR      Description = CallbackEntry->Description;
+			Cookie.QuadPart = 0;
+
+			DbgPrint("Remove NotifyCmCallBack\r\n");
+
+			Cookie.QuadPart = Description;
+
+			if (Cookie.LowPart == 0 && Cookie.HighPart == 0)
+			{
+				return STATUS_UNSUCCESSFUL;
+			}
+
+			Status = CmUnRegisterCallback(Cookie);
+			break;
+		}
+		case NotifyKeBugCheck:
+		{
+			KeDeregisterBugCheckCallback((PKBUGCHECK_CALLBACK_RECORD)CallbackEntry->Description);
+			break;
+		}
+		case NotifyKeBugCheckReason:
+		{
+			KeDeregisterBugCheckReasonCallback((PKBUGCHECK_REASON_CALLBACK_RECORD)CallbackEntry->Description);
+			break;
+		}
+		case NotifyShutdown:
+		{
+			IoUnregisterShutdownNotification((PDEVICE_OBJECT)CallbackEntry->Description);
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
+
+	
+
+
+
+
+
+}

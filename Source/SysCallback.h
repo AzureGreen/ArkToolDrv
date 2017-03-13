@@ -85,4 +85,7 @@ GetShutDownCallbackNotify(OUT PSYS_CALLBACK_INFORMATION sci, IN UINT32 NumberOfC
 NTSTATUS
 EnumSysCallbackNotify(OUT PVOID OutputBuffer, IN UINT32 OutputLength);
 
+NTSTATUS
+RemoveCallbackNotify(IN PSYS_CALLBACK_ENTRY_INFORMATION CallbackEntry);
+
 #endif // !CXX_SysCallback_H

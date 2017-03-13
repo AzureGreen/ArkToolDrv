@@ -67,7 +67,7 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 	RtlZeroMemory(DynamicData, sizeof(DYNAMIC_DATA));
 
 	// 获得计算机版本信息
-	Status = RtlGetVersion(&VersionInfo);
+	Status = RtlGetVersion((PRTL_OSVERSIONINFOW)&VersionInfo);
 	if (Status == STATUS_SUCCESS)
 	{
 		UINT32 Version = (VersionInfo.dwMajorVersion << 8) | (VersionInfo.dwMinorVersion << 4) | VersionInfo.wServicePackMajor;
