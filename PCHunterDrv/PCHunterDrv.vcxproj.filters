@@ -48,6 +48,12 @@
     <Filter Include="Dispatch\KernelSys\DpcTimer">
       <UniqueIdentifier>{590f7795-e210-454a-9cac-c636c85ee309}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\KernelSys\SystemThread">
+      <UniqueIdentifier>{647434bd-b614-4d75-a396-0f47e0e3b81a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch\KernelSys\FilterDriver">
+      <UniqueIdentifier>{9299b0a6-6157-4a23-aaee-fcd2708a91e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -91,6 +97,12 @@
     </ClCompile>
     <ClCompile Include="..\Source\SysDpcTimer.c">
       <Filter>Dispatch\KernelSys\DpcTimer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SysThread.c">
+      <Filter>Dispatch\KernelSys\SystemThread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SysFilterDriver.c">
+      <Filter>Dispatch\KernelSys\FilterDriver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +153,12 @@
     </ClInclude>
     <ClInclude Include="..\Source\SysDpcTimer.h">
       <Filter>Dispatch\KernelSys\DpcTimer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SysThread.h">
+      <Filter>Dispatch\KernelSys\SystemThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SysFilterDriver.h">
+      <Filter>Dispatch\KernelSys\FilterDriver</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

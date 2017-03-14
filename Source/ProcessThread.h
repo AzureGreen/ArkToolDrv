@@ -19,19 +19,19 @@ typedef struct _PROCESS_THREAD_ENTRY_INFORMATION
 
 typedef struct _PROCESS_THREAD_INFORMATION
 {
-	UINT32                           ThreadCount;
+	UINT32                           NumberOfThreads;
 	PROCESS_THREAD_ENTRY_INFORMATION Threads[1];
 } PROCESS_THREAD_INFORMATION, *PPROCESS_THREAD_INFORMATION;
 
 
 BOOLEAN
-IsThreadInList(IN PETHREAD EThread, IN PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 ThreadCount);
+IsThreadInList(IN PETHREAD EThread, IN PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 NumberOfThreads);
 
 UINT_PTR
 GetThreadStartAddress(IN PETHREAD EThread);
 
 VOID
-FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 ThreadCount);
+FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 NumberOfThreads);
 
 NTSTATUS
 EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputBufferLength);

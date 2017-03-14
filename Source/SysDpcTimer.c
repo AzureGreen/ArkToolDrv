@@ -205,6 +205,10 @@ EnumDpcTimer(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 								dti->DpcTimer[CurrentCount].Cycle = Timer->Period;
 								dti->DpcTimer[CurrentCount].TimeDispatch = (UINT_PTR)RealDpc->DeferredRoutine;
 							}
+							else
+							{
+								return STATUS_BUFFER_TOO_SMALL;
+							}
 							dti->NumberOfDpcTimers++;
 							Status = STATUS_SUCCESS;
 						}

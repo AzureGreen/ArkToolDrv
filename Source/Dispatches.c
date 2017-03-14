@@ -559,7 +559,71 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			}
 			break;
 		}
+		case IOCTL_SYS_ENUM_SYSTEMTHREAD_LIST:
+		{
+			DbgPrint("Enum System Thread\r\n");
+			__try
+			{
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
 
+				Status = EnumSystemThread(OutputBuffer, OutputBufferLength);
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_SYS_ENUM_FILTERDRIVER_LIST:
+		{
+			DbgPrint("Enum Filter Driver\r\n");
+			__try
+			{
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+				Status = EnumFilterDriver(OutputBuffer, OutputBufferLength);
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_SYS_REMOVE_FILTERDRIVER_ITEM:
+		{
+			DbgPrint("Remove Filter Driver\r\n");
+
+			if (InputBufferLength >= sizeof(UINT_PTR) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					Status = RemoveFilterDriver(InputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
 
 		default:
 			Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;

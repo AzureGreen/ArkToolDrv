@@ -99,6 +99,10 @@ EnumIoTimer(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 					iti->IoTimer[CurrentCount].TimeDispatch = (UINT_PTR)IoTimer->TimerRoutine;
 					iti->IoTimer[CurrentCount].Status = (UINT_PTR)IoTimer->TimerFlag;
 				}
+				else
+				{
+					return STATUS_BUFFER_TOO_SMALL;
+				}
 				iti->NumberOfIoTimers++;
 				Status = STATUS_SUCCESS;
 			}
@@ -161,7 +165,7 @@ RunOrStopIoTimer(IN POPERATION_ON_IO_TIMER_INFORMATION OperationOnIoTimer)
 		if (OperationOnIoTimer->bRun)
 		{
 			pfnIoStartTimer IoStartTimer = NULL;
-			GetNtosExportVariableAddress(L"IoStartTimer", &IoStartTimer);
+			GetNtosExportVariableAddress(L"IoStartTimer", (PVOID*)&IoStartTimer);
 			if (IoStartTimer)
 			{
 				IoStartTimer(DeviceObject);
@@ -171,7 +175,7 @@ RunOrStopIoTimer(IN POPERATION_ON_IO_TIMER_INFORMATION OperationOnIoTimer)
 		else
 		{
 			pfnIoStopTimer IoStopTimer = NULL;
-			GetNtosExportVariableAddress(L"IoStopTimer", &IoStopTimer);
+			GetNtosExportVariableAddress(L"IoStopTimer", (PVOID*)&IoStopTimer);
 			if (IoStopTimer)
 			{
 				IoStopTimer(DeviceObject);

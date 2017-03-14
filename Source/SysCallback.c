@@ -1023,16 +1023,19 @@ RemoveCallbackNotify(IN PSYS_CALLBACK_ENTRY_INFORMATION CallbackEntry)
 		case NotifyKeBugCheck:
 		{
 			KeDeregisterBugCheckCallback((PKBUGCHECK_CALLBACK_RECORD)CallbackEntry->Description);
+			Status = STATUS_SUCCESS;
 			break;
 		}
 		case NotifyKeBugCheckReason:
 		{
 			KeDeregisterBugCheckReasonCallback((PKBUGCHECK_REASON_CALLBACK_RECORD)CallbackEntry->Description);
+			Status = STATUS_SUCCESS;
 			break;
 		}
 		case NotifyShutdown:
 		{
 			IoUnregisterShutdownNotification((PDEVICE_OBJECT)CallbackEntry->Description);
+			Status = STATUS_SUCCESS;
 			break;
 		}
 		default:
@@ -1040,11 +1043,5 @@ RemoveCallbackNotify(IN PSYS_CALLBACK_ENTRY_INFORMATION CallbackEntry)
 		}
 	}
 
-
-	
-
-
-
-
-
+	return Status;
 }

@@ -81,6 +81,9 @@ typedef struct _DYNAMIC_DATA
 
 	UINT_PTR    KernelStartAddress;			// Start Address Of System
 
+	UINT32		HandleTableEntryOffset;		// HandleTableEntry Offset To TableCode
+
+
 	UINT32      NtOpenDirectoryObjectIndex; // NtOpenDirectoryObject Index In SSDT
 
 	UINT32		NtProtectVirtualMemoryIndex; // NtProtectVirtualMemory Index In SSDT

@@ -10,19 +10,19 @@ extern DYNAMIC_DATA g_DynamicData;
 
 
 BOOLEAN
-IsThreadInList(IN PETHREAD EThread, IN PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 ThreadCount)
+IsThreadInList(IN PETHREAD EThread, IN PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 NumberOfThreads)
 {
 	BOOLEAN   bOk = FALSE;
 	UINT32 i = 0;
 
-	ThreadCount = ThreadCount > ProcessThreads->ThreadCount ? ProcessThreads->ThreadCount : ThreadCount;
+	NumberOfThreads = NumberOfThreads > ProcessThreads->NumberOfThreads ? ProcessThreads->NumberOfThreads : NumberOfThreads;
 
 	if (!EThread || !ProcessThreads)
 	{
 		return TRUE;
 	}
 
-	for (i = 0; i < ThreadCount; i++)
+	for (i = 0; i < NumberOfThreads; i++)
 	{
 		if (ProcessThreads->Threads[i].EThread == (UINT_PTR)EThread)	// 匹配的上说明已经有了
 		{
@@ -93,7 +93,7 @@ GetThreadStartAddress(IN PETHREAD EThread)
 
 // 给结构体赋值
 VOID 
-FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 ThreadCount)
+FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_THREAD_INFORMATION ProcessThreads, IN UINT32 NumberOfThreads)
 {
 	if (EThread && EProcess && MmIsAddressValid((PVOID)EThread))
 	{
@@ -109,11 +109,11 @@ FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_T
 		}
 
 		if (EProcess == CurrentEProcess &&
-			!IsThreadInList(EThread, ProcessThreads, ThreadCount) &&
+			!IsThreadInList(EThread, ProcessThreads, NumberOfThreads) &&
 			NT_SUCCESS(ObReferenceObjectByPointer(EThread, 0, NULL, KernelMode)))
 		{
-			UINT32 CurrentCount = ProcessThreads->ThreadCount;
-			if (ThreadCount > CurrentCount)
+			UINT32 CurrentCount = ProcessThreads->NumberOfThreads;
+			if (NumberOfThreads > CurrentCount)
 			{
 				if (PsGetThreadId)
 				{
@@ -131,7 +131,7 @@ FillProcessThreadInfo(IN PETHREAD EThread, IN PEPROCESS EProcess, OUT PPROCESS_T
 				ProcessThreads->Threads[CurrentCount].ContextSwitches = *(PUINT32)((PUINT8)EThread + g_DynamicData.ContextSwitches);
 				ProcessThreads->Threads[CurrentCount].State = *((PUINT8)EThread + g_DynamicData.State);
 			}
-			ProcessThreads->ThreadCount++;
+			ProcessThreads->NumberOfThreads++;
 
 			ObDereferenceObject(EThread);
 		}
@@ -143,10 +143,10 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 {
 	NTSTATUS Status = STATUS_UNSUCCESSFUL;
 
-	UINT32    ThreadCount = 0;
+	UINT32    NumberOfThreads = 0;
 	PEPROCESS EProcess = NULL;
 
-	ThreadCount = (OutputBufferLength - sizeof(PROCESS_THREAD_INFORMATION)) / sizeof(PROCESS_THREAD_ENTRY_INFORMATION);
+	NumberOfThreads = (OutputBufferLength - sizeof(PROCESS_THREAD_INFORMATION)) / sizeof(PROCESS_THREAD_ENTRY_INFORMATION);
 
 	if (ProcessId == 0)
 	{
@@ -177,7 +177,7 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 			while (MmIsAddressValid(TravelList) && TravelList != ListEntry && MaxCount--)
 			{
 				PETHREAD EThread = (PETHREAD)((PUINT8)TravelList - g_DynamicData.ThreadListEntry_KTHREAD);
-				FillProcessThreadInfo(EThread, EProcess, OutputBuffer, ThreadCount);
+				FillProcessThreadInfo(EThread, EProcess, OutputBuffer, NumberOfThreads);
 				TravelList = TravelList->Flink;
 			}
 
@@ -194,14 +194,14 @@ EnumProcessThread(IN UINT32 ProcessId, OUT PVOID OutputBuffer, IN UINT32 OutputB
 			while (MmIsAddressValid(TravelList) && TravelList != ListEntry && MaxCount--)
 			{
 				PETHREAD EThread = (PETHREAD)((PUINT8)TravelList - g_DynamicData.ThreadListEntry_ETHREAD);
-				FillProcessThreadInfo(EThread, EProcess, OutputBuffer, ThreadCount);
+				FillProcessThreadInfo(EThread, EProcess, OutputBuffer, NumberOfThreads);
 				TravelList = TravelList->Flink;
 			}
 
 			KeLowerIrql(OldIrql);
 		}
 
-		if (ThreadCount >= ((PPROCESS_THREAD_INFORMATION)OutputBuffer)->ThreadCount)
+		if (NumberOfThreads >= ((PPROCESS_THREAD_INFORMATION)OutputBuffer)->NumberOfThreads)
 		{
 			Status = STATUS_SUCCESS;
 		}

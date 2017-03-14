@@ -359,7 +359,7 @@ EnumSystemModuleList(OUT PVOID OutputBuffer, IN UINT32 OutputLength)
 
 		EnumKernelModuleByDirectoryObject((PKERNEL_MODULE_INFORMATION)OutputBuffer, NumberOfDrivers);
 
-		if (NumberOfDrivers >= ((PKERNEL_MODULE_INFORMATION)OutputBuffer)->NumberOfDrivers)
+		if (NumberOfDrivers >= ((PKERNEL_MODULE_INFORMATION)OutputBuffer)->NumberOfDrivers)		// еп╤одз╢Фйг╥Я╧╩сц
 		{
 			Status = STATUS_SUCCESS;
 		}

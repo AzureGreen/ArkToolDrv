@@ -7,6 +7,8 @@ DYNAMIC_DATA	g_DynamicData = { 0 };
 
 PDRIVER_OBJECT  g_DriverObject = NULL;
 
+PEPROCESS       g_SystemEProcess = NULL;
+
 NTSTATUS
 	DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegisterPath)
 {
@@ -34,7 +36,7 @@ NTSTATUS
 	{
 		DriverObject->MajorFunction[i] = DefaultPassThrough;
 	}
-
+	
 	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoControlPassThrough;
 
 	DriverObject->DriverUnload = UnloadDriver;
@@ -42,6 +44,8 @@ NTSTATUS
 	Status = InitDynamicData(&g_DynamicData);			// 初始化信息
 
 	g_DriverObject = DriverObject;
+
+	g_SystemEProcess = PsGetCurrentProcess();
 
 	return STATUS_SUCCESS;
 }
@@ -109,7 +113,10 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			
 			DynamicData->UserEndAddress = 0x00007FFFFFFFFFFF;
 			
-	
+			DynamicData->HandleTableEntryOffset = 0x010;
+
+
+
 	//		DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
 	//		DynamicData->NtReadVirtualMemoryIndex = 0x3C;
 	//		DynamicData->NtWriteVirtualMemoryIndex = 0x37;
@@ -130,6 +137,8 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			
 
 			DynamicData->SizeOfObjectHeader = 0x018;  // Y
+
+			DynamicData->HandleTableEntryOffset = 0x008;
 
 			
 			DynamicData->UserEndAddress = 0x80000000;

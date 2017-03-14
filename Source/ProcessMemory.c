@@ -65,6 +65,11 @@ EnumProcessMemory(IN UINT32 ProcessId, OUT PPROCESS_MEMORY_INFORMATION pmi, OUT 
 								pmi->Memories[pmi->NumberOfMemories].State = mbi.State;
 								pmi->Memories[pmi->NumberOfMemories].Type = mbi.Type;
 							}
+							else
+							{
+								Status = STATUS_BUFFER_TOO_SMALL;
+								break;
+							}
 
 							pmi->NumberOfMemories++;
 							BaseAddress += mbi.RegionSize;
