@@ -29,7 +29,7 @@ EnumProcessMemory(IN UINT32 ProcessId, OUT PPROCESS_MEMORY_INFORMATION pmi, OUT 
 		{
 			if (IsValidProcess(EProcess) == TRUE)
 			{
-				UINT32	NumberOfMemories = (OutputLength - sizeof(PROCESS_MEMORY_INFORMATION)) / sizeof(MEMORY_BASIC_INFORMATION);		// Ring3传递的0x1000
+				UINT32	NumberOfMemories = (OutputLength - sizeof(PROCESS_MEMORY_INFORMATION)) / sizeof(PROCESS_MEMORY_ENTRY_INFORMATION);		// Ring3传递的0x1000
 
 				HANDLE  ProcessHandle = NULL;
 

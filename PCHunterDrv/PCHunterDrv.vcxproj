@@ -127,6 +127,9 @@
   <ItemGroup>
     <ClInclude Include="..\Source\Dispatches.h" />
     <ClInclude Include="..\Source\Imports.h" />
+    <ClInclude Include="..\Source\krnlFile.h" />
+    <ClInclude Include="..\Source\KrnlSSDT.h" />
+    <ClInclude Include="..\Source\KrnlSSSDT.h" />
     <ClInclude Include="..\Source\ModuleCore.h" />
     <ClInclude Include="..\Source\NtStructs.h" />
     <ClInclude Include="..\Source\PCHunterDrv.h" />
@@ -146,6 +149,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Dispatches.c" />
+    <ClCompile Include="..\Source\KrnlFile.c" />
+    <ClCompile Include="..\Source\KrnlSSDT.c" />
+    <ClCompile Include="..\Source\KrnlSSSDT.c" />
     <ClCompile Include="..\Source\ModuleCore.c" />
     <ClCompile Include="..\Source\PCHunterDrv.c" />
     <ClCompile Include="..\Source\Private.c" />

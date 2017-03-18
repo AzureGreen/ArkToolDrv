@@ -54,6 +54,9 @@
     <Filter Include="Dispatch\KernelSys\FilterDriver">
       <UniqueIdentifier>{9299b0a6-6157-4a23-aaee-fcd2708a91e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dispatch\KrnlHook">
+      <UniqueIdentifier>{9e2ada0e-4f1a-4dac-925d-fe8f4253889b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\PCHunterDrv.c">
@@ -103,6 +106,15 @@
     </ClCompile>
     <ClCompile Include="..\Source\SysFilterDriver.c">
       <Filter>Dispatch\KernelSys\FilterDriver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\KrnlSSDT.c">
+      <Filter>Dispatch\KrnlHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\KrnlSSSDT.c">
+      <Filter>Dispatch\KrnlHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\KrnlFile.c">
+      <Filter>Dispatch\KrnlHook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -159,6 +171,15 @@
     </ClInclude>
     <ClInclude Include="..\Source\SysFilterDriver.h">
       <Filter>Dispatch\KernelSys\FilterDriver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\KrnlSSDT.h">
+      <Filter>Dispatch\KrnlHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\KrnlSSSDT.h">
+      <Filter>Dispatch\KrnlHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\krnlFile.h">
+      <Filter>Dispatch\KrnlHook</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

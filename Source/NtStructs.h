@@ -380,7 +380,7 @@ typedef struct _MEMORY_BASIC_INFORMATION
 // SSDT ±í
 typedef struct _SYSTEM_SERVICE_DESCRIPTOR_TABLE
 {
-	PUINT_PTR	ServiceTableBase;
+	PUINT32     ServiceTableBase;
 	PUINT32		ServiceCounterTableBase;
 	UINT_PTR	NumberOfServices;
 	PUINT8		ParamTableBase;

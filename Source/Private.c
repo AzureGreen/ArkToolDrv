@@ -195,7 +195,8 @@ SearchPattern(IN PUINT8 Pattern, IN UINT8 MatchWord, IN UINT_PTR PatternLength, 
 *  获得SSDT基地址
 ************************************************************************/
 
-BOOLEAN GetSSDTAddress(OUT PSYSTEM_SERVICE_DESCRIPTOR_TABLE* SSDTAddress)
+BOOLEAN 
+GetSSDTAddress(OUT PSYSTEM_SERVICE_DESCRIPTOR_TABLE* SSDTAddress)
 {
 	PVOID KernelBase = NULL;
 
@@ -277,7 +278,8 @@ BOOLEAN GetSSDTAddress(OUT PSYSTEM_SERVICE_DESCRIPTOR_TABLE* SSDTAddress)
 *  通过ZwQuerySystemInformation和内核导出全局变量地址配合查找内核第一模块
 ************************************************************************/
 
-BOOLEAN GetKernelBase(OUT PVOID* KernelBase, OUT PUINT32 KernelSize)
+BOOLEAN 
+GetKernelBase(OUT PVOID* KernelBase, OUT PUINT32 KernelSize)
 {
 	NTSTATUS			 Status = STATUS_UNSUCCESSFUL;
 
@@ -609,19 +611,6 @@ GetSSDTFunctionIndex(IN CHAR* szTargetFunctionName, OUT PUINT32 SSDTFunctionInde
 
 
 //////////////////////////////////////////////////////////////////////////
-
-
-BOOLEAN
-GetSSSDTAddress( )
-{
-
-}
-
-PVOID
-GetSSSDTEntry()
-{
-
-}
 
 
 BOOLEAN 

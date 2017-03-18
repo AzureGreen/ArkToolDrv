@@ -109,9 +109,9 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			
 			DynamicData->SizeOfObjectHeader = 0x030;
 
-			DynamicData->KernelStartAddress = 0xFFFF800000000000;
+			DynamicData->KernelStartAddress = 0xFFFF080000000000;
 			
-			DynamicData->UserEndAddress = 0x00007FFFFFFFFFFF;
+			DynamicData->UserEndAddress = 0x000007FFFFFFFFFF;		// 8GB
 			
 			DynamicData->HandleTableEntryOffset = 0x010;
 

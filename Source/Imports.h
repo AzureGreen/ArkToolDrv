@@ -20,6 +20,14 @@ PsGetProcessPeb(
 	__in PEPROCESS Process
 );
 
+NTSTATUS
+NtQuerySystemInformation(
+	__in SYSTEM_INFORMATION_CLASS SystemInformationClass,
+	__out_bcount_opt(SystemInformationLength) PVOID SystemInformation,
+	__in ULONG SystemInformationLength,
+	__out_opt PULONG ReturnLength
+);
+
 NTSYSAPI
 NTSTATUS
 NTAPI

@@ -1,5 +1,6 @@
 #include "Dispatches.h"
 
+extern UINT_PTR  g_ServiceTableBase;
 
 NTSTATUS
 IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -417,7 +418,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		{
 			DbgPrint("Remove Callback\r\n");
 
-			if (InputBufferLength >= sizeof(PSYS_CALLBACK_ENTRY_INFORMATION) && InputBuffer)
+			if (InputBufferLength >= sizeof(SYS_CALLBACK_ENTRY_INFORMATION) && InputBuffer)
 			{
 				__try
 				{
@@ -490,7 +491,7 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		{
 			DbgPrint("Run Or Stop IoTimer\r\n");
 
-			if (InputBufferLength >= sizeof(POPERATION_ON_IO_TIMER_INFORMATION) && InputBuffer)
+			if (InputBufferLength >= sizeof(OPERATION_ON_IO_TIMER_INFORMATION) && InputBuffer)
 			{
 				__try
 				{
@@ -622,6 +623,242 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			{
 				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
 			}
+			break;
+		}
+		case IOCTL_KRNL_GET_KISERVICETABLE:
+		{
+			DbgPrint("Get SSDT\r\n");
+			__try
+			{
+				PSYSTEM_SERVICE_DESCRIPTOR_TABLE SSDT = NULL;
+
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+				Status = GetKeServiceDescriptorTable((PUINT_PTR)&SSDT);
+
+				g_ServiceTableBase = (UINT_PTR)SSDT->ServiceTableBase;
+
+				*(PUINT_PTR)OutputBuffer = g_ServiceTableBase;
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_KRNL_ENUM_SSDTFUNCTION_LIST:
+		{
+			DbgPrint("Enum SSDT Functions\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					*(PUINT_PTR)OutputBuffer = (UINT_PTR)GetSSDTFunctionAddress(*(PUINT32)InputBuffer);
+
+					DbgPrint("SSDT Function Address: %p\r\n", *(PUINT_PTR)OutputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_KRNL_RESUME_HOOKED_SSDTFUNCTION:
+		{
+			DbgPrint("Resume SSDT Hook\r\n");
+
+			if (InputBufferLength >= sizeof(SSDT_FUNCTION_INFORMATION) && InputBuffer)
+			{
+				__try
+				{
+					PSSDT_FUNCTION_INFORMATION SSDTInfo = NULL;
+
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+
+					SSDTInfo = (PSSDT_FUNCTION_INFORMATION)InputBuffer;
+
+					Status = ResumeSSDTHook(SSDTInfo->Index, SSDTInfo->OriginalAddress);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+			break;
+		}
+		case IOCTL_KRNL_GET_WIN32KSERIVCE:
+		{
+			DbgPrint("Get Win32k Table\r\n");
+			__try
+			{
+				PSYSTEM_SERVICE_DESCRIPTOR_TABLE SSSDT = NULL;
+
+				ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+				Status = GetKeServiceDescriptorTableShadow((PUINT_PTR)&SSSDT);
+
+				g_ServiceTableBase = (UINT_PTR)SSSDT->ServiceTableBase;
+
+				*(PUINT_PTR)OutputBuffer = g_ServiceTableBase;
+
+				Irp->IoStatus.Information = 0;
+				Irp->IoStatus.Status = Status;
+			}
+			__except (EXCEPTION_EXECUTE_HANDLER)
+			{
+				DbgPrint("Catch Exception\r\n");
+				Status = STATUS_UNSUCCESSFUL;
+			}
+			break;
+		}
+		case IOCTL_KRNL_ENUM_SSSDTFUNCTION_LIST:
+		{
+			DbgPrint("Enum SSSDT Functions\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					*(PUINT_PTR)OutputBuffer = (UINT_PTR)GetSSSDTFunctionAddress(*(PUINT32)InputBuffer);
+
+					DbgPrint("SSDT Function Address: %p\r\n", *(PUINT_PTR)OutputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = STATUS_SUCCESS;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_KRNL_ENUM_KRNLFILE:
+		{
+			DbgPrint("Enum Functions\r\n");
+
+			if (InputBufferLength >= sizeof(INT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(INT32));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					Status = EnumKrnlFileFunctions(*(PINT)InputBuffer, OutputBuffer, OutputBufferLength);
+
+					DbgPrint("SSDT Function Address: %p\r\n", *(PUINT_PTR)OutputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_KRNL_ENUM_KRNLIAT:
+		{
+			DbgPrint("Enum IAT\r\n");
+
+			if (InputBufferLength > 0 && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					Status = QueryKrnlFileIATFunction(OutputBuffer, OutputBufferLength, (CHAR*)InputBuffer);
+
+					DbgPrint("SSDT Function Address: %p\r\n", *(PUINT_PTR)OutputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
+			break;
+		}
+		case IOCTL_KRNL_ENUM_KRNLEAT:
+		{
+			DbgPrint("Enum EAT\r\n");
+
+			if (InputBufferLength >= sizeof(UINT32) && InputBuffer)
+			{
+				__try
+				{
+					ProbeForRead(InputBuffer, InputBufferLength, sizeof(UINT8));
+					ProbeForWrite(OutputBuffer, OutputBufferLength, sizeof(UINT8));
+
+					Status = QueryKrnlFileEATFunction(OutputBuffer, OutputBufferLength, (CHAR*)InputBuffer);
+
+					DbgPrint("SSDT Function Address: %p\r\n", *(PUINT_PTR)OutputBuffer);
+
+					Irp->IoStatus.Information = 0;
+					Irp->IoStatus.Status = Status;
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
+					DbgPrint("Catch Exception\r\n");
+					Status = STATUS_UNSUCCESSFUL;
+				}
+			}
+			else
+			{
+				Irp->IoStatus.Status = STATUS_INFO_LENGTH_MISMATCH;
+			}
+
 			break;
 		}
 
