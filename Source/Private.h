@@ -72,7 +72,6 @@ typedef struct _DYNAMIC_DATA
 
 	//////////////////////////////////////////////////////////////////////////
 
-	
 	UINT_PTR	UserEndAddress;				// Max Address Of Ring3 Can Visit
 
 	UINT32		NtQueryVirtualMemoryIndex;	// NtQueryVirtualMemory Index In SSDT
@@ -83,7 +82,6 @@ typedef struct _DYNAMIC_DATA
 
 	UINT32		HandleTableEntryOffset;		// HandleTableEntry Offset To TableCode
 
-
 	UINT32      NtOpenDirectoryObjectIndex; // NtOpenDirectoryObject Index In SSDT
 
 	UINT32		NtProtectVirtualMemoryIndex; // NtProtectVirtualMemory Index In SSDT
@@ -92,7 +90,9 @@ typedef struct _DYNAMIC_DATA
 
 	UINT32		NtWriteVirtualMemoryIndex;	// NtWriteVirtualMemory Index In SSDT
 
-	
+	UINT32      NtUserBuildHwndListIndex;   // NtUserBuildHwndList Index In SSSDT
+
+	UINT32      NtUserQueryWindowIndex;     // NtUserQueryWindow Index In SSSDT
 
 } DYNAMIC_DATA, *PDYNAMIC_DATA;
 

@@ -85,6 +85,8 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 		case WINVER_7_SP1:
 		{
 #ifdef _WIN64
+			//////////////////////////////////////////////////////////////////////////
+			// EProcess
 			DynamicData->ThreadListHead_KPROCESS = 0x030;
 			DynamicData->ObjectTable = 0x200;
 			DynamicData->SectionObject = 0x268;
@@ -92,7 +94,7 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			DynamicData->ThreadListHead_EPROCESS = 0x308;
 
 			//////////////////////////////////////////////////////////////////////////
-			// Thread
+			// EThread
 
 			DynamicData->Priority = 0x07b;
 			DynamicData->Teb = 0x0b8;
@@ -107,6 +109,8 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			DynamicData->ThreadListEntry_ETHREAD = 0x428;   ////
 			DynamicData->SameThreadApcFlags = 0x458;    ////
 			
+			//////////////////////////////////////////////////////////////////////////
+			// Object
 			DynamicData->SizeOfObjectHeader = 0x030;
 
 			DynamicData->KernelStartAddress = 0xFFFF080000000000;
@@ -115,6 +119,11 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			
 			DynamicData->HandleTableEntryOffset = 0x010;
 
+			//////////////////////////////////////////////////////////////////////////
+			// SSSDT Index
+			DynamicData->NtUserQueryWindowIndex = 0x1010;
+
+			DynamicData->NtUserBuildHwndListIndex = 0x101C;
 
 
 	//		DynamicData->NtProtectVirtualMemoryIndex = 0x4D;
@@ -154,6 +163,7 @@ InitDynamicData(IN OUT PDYNAMIC_DATA DynamicData)
 			break;
 		}
 
+		// ¶¯Ì¬»ñµÃIndex
 		GetSSDTFunctionIndex("NtQueryVirtualMemory", &(DynamicData->NtQueryVirtualMemoryIndex));
 
 		GetSSDTFunctionIndex("NtOpenDirectoryObject", &(DynamicData->NtOpenDirectoryObjectIndex));

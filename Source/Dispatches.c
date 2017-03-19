@@ -168,7 +168,6 @@ IoControlPassThrough(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			break;
 		}
-
 		case IOCTL_PROC_PROCESS_PRIVILEGE:
 		{
 			DbgPrint("Process Privilege\r\n");

@@ -3,6 +3,8 @@
 
 #include <ntifs.h>
 #include <windef.h>		// HWND
+#include "Private.h"
+#include "KrnlSSSDT.h"
 
 typedef struct _PROCESS_WINDOW_ENTRY_INFORMATION
 {

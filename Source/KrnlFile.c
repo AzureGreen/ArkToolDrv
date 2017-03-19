@@ -1,5 +1,7 @@
 #include "krnlFile.h"
 
+#include <strsafe.h>
+
 PFILE_INFORMATION    g_FileInfoPtr = NULL;
 FILE_INFORMATION     g_FileInfo;
 char                 g_szKrnlFileFullPath[MAX_PATH] = { 0 };
@@ -430,175 +432,96 @@ GetExportFunctionAddress(IN PUINT8 BaseAddress, IN CHAR* szFunctionName, OUT PUI
 
 
 NTSTATUS
-EnumIATTable(OUT PIAT_INFORMATION OutBuffer, IN UINT32 OutputLength)
+EnumIATTable(OUT PIAT_INFORMATION OutputBuffer, IN UINT32 OutputLength)
 {
+	NTSTATUS Status = STATUS_UNSUCCESSFUL;
+	UINT32   Num = 0;
+	UINT32   NumberOfFunctions = (OutputLength - sizeof(IAT_INFORMATION)) / sizeof(IAT_ENTRY_INFORMATION);
 
-	NTSTATUS						 Status = STATUS_UNSUCCESSFUL;
-
-	PIMAGE_IMPORT_DESCRIPTOR	     ImportDescriptor = NULL;		// 导入表地址（文件）
-	UINT32                           ImportSize = 0;				// 导入表大小（文件）
-	INT32                            ImportDiff = 0;               // 导入表文件与内存差值
-
-	PIMAGE_THUNK_DATA				 ImportFirstThunk = NULL;       // IAT地址 内存
-	INT32                            IATDiff = 0;                   // IAT文件 内存 差值
-	UINT32                           IATSize = 0;                   // IAT大小 内存
-
-	UINT32						     ImportDescriptorIndex = 0;    // 导入表索引 哪一张导入表
-	PIMAGE_IMPORT_DESCRIPTOR		 ImportDescriptorArray[64] = { NULL }; // 保存每张导入表首地址数组
-	UINT32                           MaxImportDescriptorCount = 0;         // 导入表个数
-
-	CHAR*                            ImportModuleName = NULL;             // 导入模块名称
-
-	PIMAGE_THUNK_DATA                ImportOriginalFirstThunk = NULL;     // 指向导入函数名称表
-	PIMAGE_IMPORT_BY_NAME            OriginalName = NULL;                  // 导入函数名称
-	UINT_PTR                         OriginalFunctionAddress = 0;          // 导入函数地址
-
-	CHAR                             szIATOriginalImageFile[MAX_NAME] = { 0 };  
-
-	PFILE_INFORMATION                ModuleFile = NULL;                    // 存有当前在枚举的模块的信息，每次循环会更新
-
-	UINT32                           NumberOfImportFunctions = (OutputLength - sizeof(IAT_INFORMATION)) / sizeof(IAT_ENTRY_INFORMATION);
-
-	if (g_FileInfo.BaseAddress != 0)
+	if (g_FileInfo.BaseAddress)
 	{
-		ImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)GetDirectoryAddress((PUINT8)g_FileInfo.szFileData,
-			IMAGE_DIRECTORY_ENTRY_IMPORT, &ImportSize, &ImportDiff, TRUE);	 // 文件内容
-
-		ImportFirstThunk = (PIMAGE_THUNK_DATA)GetDirectoryAddress((PUINT8)g_FileInfo.BaseAddress,
-			IMAGE_DIRECTORY_ENTRY_IAT, &IATSize, &IATDiff, FALSE);			// 内存内容 IAT
-
-		if (IATSize / sizeof(UINT32) > NumberOfImportFunctions)
+		do 
 		{
-			OutBuffer->NumberOfImportFunctions = IATSize / sizeof(UINT32);		// Offset不会超过4字节
+			PIMAGE_IMPORT_DESCRIPTOR ImportDescriptor = NULL;		// 文件 导入表
+			UINT32                   ImportTableSize = 0;
+			UINT32                   ImportDifference = 0;          // 文件与内存的差值
 
-			Status = STATUS_BUFFER_TOO_SMALL;
+			PIMAGE_THUNK_DATA        FirstThunk = NULL;      // 内存 函数地址表
+			UINT32                   IATSize = 0;
+			UINT32                   IATDifference = 0;
 
-			goto Exit;
-		}
+			PIMAGE_THUNK_DATA        OriginalFirstThunk = NULL; // 函数名称表
 
-		if (!ImportFirstThunk || !ImportDescriptor)
-		{
-			Status = STATUS_UNSUCCESSFUL;
-			goto Exit;
-		}
+			ImportDescriptor = (PIMAGE_IMPORT_DESCRIPTOR)GetDirectoryAddress((PUINT8)g_FileInfo.szFileData,
+				IMAGE_DIRECTORY_ENTRY_IMPORT, &ImportTableSize, &ImportDifference, TRUE);
 
-		while (ImportDescriptor->Name)  // 导入模块不为空  从自己的内存中获得所有的模块
-		{
-			ImportDescriptorArray[ImportDescriptorIndex] = ImportDescriptor;	// 保存在数组中
+			FirstThunk = (PIMAGE_THUNK_DATA)GetDirectoryAddress((PUINT8)g_FileInfo.BaseAddress,
+				IMAGE_DIRECTORY_ENTRY_IAT, &IATSize, &IATDifference, FALSE);
 
-			ImportDescriptorIndex++;
-			ImportDescriptor++;
-		}
-
-		if (ImportDescriptorIndex == 0)
-		{
-			Status = STATUS_UNSUCCESSFUL;
-			goto Exit;  // 该模块没有任何的导入模块
-		}
-
-		MaxImportDescriptorCount = ImportDescriptorIndex;
-		ImportDescriptorIndex = 0;
-		ImportDescriptor = ImportDescriptorArray[ImportDescriptorIndex];
-		ImportDescriptorIndex++;
-
-		// 通过文件内容 导入模块名称
-		ImportModuleName = MakePtr(CHAR*, g_FileInfo.szFileData, ImportDescriptor->Name - ImportDiff);  // 文件内容
-		if (!ImportModuleName)
-		{
-			Status = STATUS_UNSUCCESSFUL;
-			goto Exit;
-		}
-
-		ImportOriginalFirstThunk = MakePtr(PIMAGE_THUNK_DATA, g_FileInfo.szFileData, ImportDescriptor->OriginalFirstThunk - ImportDiff);     // 文件内容  INT
-
-		// 通过导入的模块名找到导入模块
-		// 导入模块的函数名称  导入的模块名称 
-
-		while (ImportOriginalFirstThunk && ImportModuleName && IATSize && ImportFirstThunk->u1.Function)
-		{
-
-			if (_stricmp(szIATOriginalImageFile, ImportModuleName) != 0)	// 第一次进
+			if (NumberOfFunctions < IATSize / sizeof(UINT32))
 			{
-				if (ModuleFile != NULL && ModuleFile->szFileData != NULL && MmIsAddressValid(ModuleFile->szFileData))
-				{
-					DbgPrint("ExFreePool(ModuleFile->szFileData)\r\n");
-					ExFreePool(ModuleFile->szFileData);
-				}
-				ModuleFile = CreateFileData(NULL, ImportModuleName);
-				if (ModuleFile == NULL)
-				{
-					DbgPrint("CreateFileData Failed\r\n");
-					Status = STATUS_UNSUCCESSFUL;
-					goto Exit;
-				}
-
-				RtlZeroMemory(szIATOriginalImageFile, MAX_NAME);
-				strcpy(szIATOriginalImageFile, ImportModuleName);
-			}
-
-			strcpy(OutBuffer->ImportFunction[OutBuffer->NumberOfImportFunctions].szModuleName, ImportModuleName);
-
-			OriginalName = MakePtr(PIMAGE_IMPORT_BY_NAME, g_FileInfo.szFileData, (UINT_PTR)ImportOriginalFirstThunk->u1.AddressOfData - ImportDiff);  // 通过Original(文件)获得函数名称
-
-			// 从First(内存)中获得函数地址
-
-			if (GetExportFunctionAddress((PUINT8)ModuleFile->szFileData, (CHAR*)OriginalName->Name, &OriginalFunctionAddress, TRUE))     // 从导入的模块中获得函数地址Offset
-			{
-				OriginalFunctionAddress += (UINT_PTR)ModuleFile->BaseAddress;		// Real Addr Get From Eat
-				DbgPrint("ExportFuncAddr: %p\r\n", OriginalFunctionAddress);
-			}
-
-
-			strcpy(OutBuffer->ImportFunction[OutBuffer->NumberOfImportFunctions].szFunctionName, (CHAR*)OriginalName->Name);
-			OutBuffer->ImportFunction[OutBuffer->NumberOfImportFunctions].CurFuncAddress = ImportFirstThunk->u1.Function;       // Get From IAT
-			OutBuffer->ImportFunction[OutBuffer->NumberOfImportFunctions].OriFuncAddress = OriginalFunctionAddress;
-
-			OutBuffer->NumberOfImportFunctions++;
-			ImportFirstThunk++;
-			ImportOriginalFirstThunk++;
-			IATSize -= sizeof(UINT32);
-			
-			if (IATSize == 0)
-			{
+				OutputBuffer->NumberOfImportFunctions = IATSize / sizeof(UINT32);
+				Status = STATUS_BUFFER_TOO_SMALL;
 				break;
 			}
-
-			if (ImportFirstThunk->u1.Function == 0)  // 一个导入模块已经遍历完成
+			else
 			{
-				ImportFirstThunk++;
-				IATSize -= sizeof(UINT32);
-
-				ImportDescriptor = ImportDescriptorArray[ImportDescriptorIndex];  // 从数组中获得下一个导出模块
-
-				if (ImportDescriptorIndex == MaxImportDescriptorCount)
+				if (ImportDescriptor && FirstThunk)
 				{
-					break;
-				}
+					// 此处应该有个循环！！！循环遍历每张导入表
+					for (INT i = 0; ImportDescriptor[i].Name, IATSize != 0, FirstThunk[Num + i].u1.Function; i++)
+					{
+						// 获得导入模块名称
+						CHAR* ImportModuleName = MakePtr(CHAR*, g_FileInfo.szFileData, ImportDescriptor[i].Name - ImportDifference);
+						if (ImportModuleName)
+						{
+							// 通过模块名称加载模块信息
+							PFILE_INFORMATION ModuleFileInfo = CreateFileData(NULL, ImportModuleName);
+							if (ModuleFileInfo)
+							{
+								// 名称表
+								OriginalFirstThunk = MakePtr(PIMAGE_THUNK_DATA, g_FileInfo.szFileData, ImportDescriptor[i].OriginalFirstThunk - ImportDifference);
 
-				ImportDescriptorIndex++;
+								// 拿到了 FirstThunk 和 OriginalFirstThunk 就有了函数地址表和函数名称表
+								// 遍历当前导入模块信息
+								for (INT j = 0; &OriginalFirstThunk[j] && ImportModuleName &&
+									IATSize && FirstThunk[Num + i].u1.Function; j++)               // 这里 Num+i 会出现0，然后出了这层循环，到外层循环i会自动加1，跳到了下一个IAT
+								{
+									PIMAGE_IMPORT_BY_NAME OrdinalName = NULL;
+									UINT_PTR              OriginalAddress = 0;
 
-				ImportModuleName = MakePtr(CHAR*, g_FileInfo.szFileData, ImportDescriptor->Name - ImportDiff);    // 更新模块名称
-				ImportOriginalFirstThunk = MakePtr(PIMAGE_THUNK_DATA, g_FileInfo.szFileData, ImportDescriptor->OriginalFirstThunk - ImportDiff);  // 文件内容  下一个INT
+									OrdinalName = MakePtr(PIMAGE_IMPORT_BY_NAME, g_FileInfo.szFileData, OriginalFirstThunk[j].u1.AddressOfData - ImportDifference);
 
-				if (ImportOriginalFirstThunk == NULL ||
-					ImportModuleName == NULL ||
-					(PUINT32)ImportFirstThunk->u1.Function == NULL ||
-					IATSize == 0)
-				{
-					break;
+									if (GetExportFunctionAddress((PUINT8)ModuleFileInfo->szFileData, (CHAR*)OrdinalName->Name, &OriginalAddress, TRUE))
+									{
+										OriginalAddress += (UINT_PTR)ModuleFileInfo->BaseAddress;
+									}
+
+									OutputBuffer->ImportFunction[Num].CurFuncAddress = FirstThunk[Num + i].u1.Function;
+									OutputBuffer->ImportFunction[Num].OriFuncAddress = OriginalAddress;
+									StringCchCopy(OutputBuffer->ImportFunction[Num].szFunctionName, strlen((CHAR*)OrdinalName->Name), (CHAR*)OrdinalName->Name);
+									StringCchCopy(OutputBuffer->ImportFunction[Num++].szModuleName, strlen(ImportModuleName), ImportModuleName);
+
+									IATSize -= sizeof(UINT32);
+
+								}
+
+								IATSize -= sizeof(UINT32);       // 减去 IAT 为0的空项
+
+								// 当前模块遍历完成，释放内存
+								if (ModuleFileInfo)
+								{
+									ExFreePool(ModuleFileInfo->szFileData);
+									RtlZeroMemory(ModuleFileInfo, sizeof(FILE_INFORMATION));
+								}
+							}
+						}
+					}
 				}
 			}
-		}
-	}
-
-	Status = STATUS_SUCCESS;
-
-Exit:
-
-	if (ModuleFile != NULL && ModuleFile->szFileData != NULL && MmIsAddressValid(ModuleFile->szFileData))
-	{
-		DbgPrint("ExFreePool(ModuleFile->szFileData)\r\n");
-		ExFreePool(ModuleFile->szFileData);
+			OutputBuffer->NumberOfImportFunctions = Num;
+			Status = STATUS_SUCCESS;
+		} while (FALSE);
 	}
 
 	return Status;
@@ -620,7 +543,8 @@ QueryKrnlFileIATFunction(OUT PVOID OutputBuffer, IN UINT32 OutputLength, IN CHAR
 	g_FileInfo.BaseAddress = (PVOID)g_KrnlFileBase;
 	g_FileInfo.Size = g_KrnlFileSize;
 
-	strcpy(g_FileInfo.szFileFullPath, g_szKrnlFileFullPath);
+	//strcpy(g_FileInfo.szFileFullPath, g_szKrnlFileFullPath);
+	StringCchCopy(g_FileInfo.szFileFullPath, MAX_PATH, g_szKrnlFileFullPath);
 	ReadFileInfo(&g_FileInfo);		// 填充FileData
 
 	Status = EnumIATTable((PIAT_INFORMATION)OutputBuffer, OutputLength);
